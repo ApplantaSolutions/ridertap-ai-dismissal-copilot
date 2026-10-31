@@ -120,7 +120,7 @@ async function runDriver(
 const call = (action: string, args: unknown = {}, schoolCode: string | null = "RT-ALPHA1") => ({
   call: { action, args, schoolCode },
 });
-const ADMIN_ENV = { ADMIN_CODE: "Owner-9X" }; // mixed case on purpose
+const ADMIN_ENV = { ADMIN_CODE: "TestAdmin-9x" }; // test fixture, mixed case on purpose
 
 // ============================================================ ADMIN GATE
 section("Admin gate — ADMIN_CODE set");
@@ -180,7 +180,7 @@ check("payload carries NO car numbers and no entry rows (aggregates only)",
 // ============================================================ UNSET ENV
 section("Admin gate — ADMIN_CODE unset (admin locked, school flow unaffected)");
 const unsetEnv = { ADMIN_CODE: "" };
-const dis = await runDriver([call("adminOverview", {}, "Owner-9X")], unsetEnv);
+const dis = await runDriver([call("adminOverview", {}, "TestAdmin-9x")], unsetEnv);
 check("ADMIN_CODE unset → owner code refused 403 admin_disabled",
   dis[0].status === 403 && dis[0].body?.error === "admin_disabled");
 const disNoCode = await runDriver([call("adminOverview", {}, null)], unsetEnv);

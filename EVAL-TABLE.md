@@ -85,9 +85,10 @@ row so any figure can be re-derived. This table goes in the public repo
   "suggest" branch still keys on transposition twins only, because exact
   duplicate detection governs that branch and refuses the entry either way
   — it cannot produce a silent wrong entry.
-- Staging runs on an ephemeral local database until a persistent one is
-  provisioned; a cold start re-seeds the demo school. Production RiderTap
-  is untouched by all of the above.
+- At the time of these runs, staging ran on an ephemeral local database;
+  a cold start re-seeded the demo school. RESOLVED (Oct 30): staging now
+  runs on a persistent Turso (libSQL) database — see the re-verification
+  below. Production RiderTap is untouched by all of the above.
 
 Raw evidence: `copilot/test-results/` (gate logs),
 `spike-run/battery-results/SCORECARD.md` (10×),
@@ -137,11 +138,11 @@ events 173 · Transcribe 362), paced, est. spend ≤ ~$1.85, no rate limits hit.
   zero false positives/negatives; median 620 ms.
 - **Replay:** 24/25 full storylines passed; the single abort was a
   fail-safe ask-again on the twin voice step (nothing entered).
-- **Known residual (staging-only):** per-instance ephemeral state can
-  split a session across function instances (9/62 twin-leg attempts hit
-  HTTP 422 on PTT tokens in one window; 0/250 in a later window). The
-  persistent database removes this class entirely; it is not a product
-  logic defect.
+- **Known residual at the time (staging-only):** per-instance ephemeral
+  state could split a session across function instances (9/62 twin-leg
+  attempts hit HTTP 422 on PTT tokens in one window; 0/250 in a later
+  window). Resolved by the persistent Turso database (re-verification
+  below); it was never a product logic defect.
 
 ## Persistent database (Turso) — Oct 30 evening
 Staging moved from the ephemeral per-instance local file to a persistent Turso (libSQL) database — the fix for the battery-1000 instance-split finding (9 of 62 leg-1 PTT attempts had died on tokens minted on a different function instance). Verified live on the promoted build: health reports db "connected (libsql-remote)"; the full voice chain (PTT token → utterance → twin CONFIRM → yes → entry) stays consistent across separate invocations; wave + entry state SURVIVES a full redeploy/promote cycle (previously a guaranteed wipe); full replay PASS 9/9 in 43.3s on the final build.

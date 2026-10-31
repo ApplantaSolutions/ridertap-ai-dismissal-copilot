@@ -1,0 +1,188 @@
+== health ==
+PASS  health answers ok — {"ok":true,"service":"ridertap-copilot","build":"build-2-exception-agent","samAdapter":"stub","samModel":"stub:sam-3.1-scripted","sparkAdapter":"stub","sparkModel":"stub:muse-spark-scripted","transcribeAdapter":"live","transcribeModel":"muse-voice-transcribe-1.0","db":"connected (local-file)","ts":"2026-10-30T13:37:27.745Z"}
+PASS  health reports build-2 + stub Spark adapter — build=build-2-exception-agent sparkAdapter=stub
+
+== EX-01 — zone mismatch +1 (SC-04), the demo hook ==
+PASS  EX-01 still 1: CHECKING, NO exception (debounce pending) — {"ok":true,"lane":"left","count":5,"expected":4,"status":"CHECKING","flagRaised":false,"streak":1,"masksReturned":5,"masksCounted":5,"adapter":"stub","modelId":"stub:sam-3.1-scripted","latencyMs":0}
+PASS  EX-01 still 2: MISMATCH flag raised, exception attached — {"ok":true,"lane":"left","count":5,"expected":4,"status":"MISMATCH","flagRaised":true,"streak":2,"masksReturned":5,"masksCounted":5,"adapter":"stub","modelId":"stub:sam-3.1-scripted","latencyMs":0,"exception":{"trigger":"zone_mismatch","instruction":"Five cars in the zone but Wave L1 has four — hold the wave and check for an extra car before loading.","action":"hold_wave","source":"spark","latencyMs":3,"status":"open","createdAt":"2026-10-30T13:37:27.822Z"}}
+PASS  EX-01: an exception line was produced — {"trigger":"zone_mismatch","instruction":"Five cars in the zone but Wave L1 has four — hold the wave and check for an extra car before loading.","action":"hold_wave","source":"spark","latencyMs":3,"status":"open","createdAt":"2026-10-30T13:37:27.822Z"}
+PASS  EX-01: trigger is zone_mismatch — zone_mismatch
+PASS  EX-01: source is spark (healthy stub run) — spark
+PASS  EX-01: action is hold_wave (same as reference) — hold_wave
+PASS  EX-01: one sentence, ≤140 chars (101) — Five cars in the zone but Wave L1 has four — hold the wave and check for an extra car before loading.
+PASS  EX-01: line names "L1" — Five cars in the zone but Wave L1 has four — hold the wave and check for an extra car before loading.
+PASS  EX-01: no prohibited instruction — clean
+PASS  EX-01: stub line equals the scripted acceptable line (determinism evidence) — Five cars in the zone but Wave L1 has four — hold the wave and check for an extra car before loading.
+PASS  EX-01: line does NOT blame a specific tag (vision cannot know which car is extra) — Five cars in the zone but Wave L1 has four — hold the wave and check for an extra car before loading.
+PASS  EX-01: audit log marks the served line spark-prefetch (computed at CHECKING, served at the flag) — {"trigger":"zone_mismatch","source":"spark-prefetch"}
+
+== EX-02 — zone mismatch −1 (SC-05), Right lane ==
+PASS  EX-02: an exception line was produced — {"trigger":"zone_mismatch","instruction":"Only three cars in the zone for Wave R1's four tags — check which called car is missing before loading.","action":"check_tag","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:27.849Z"}
+PASS  EX-02: trigger is zone_mismatch — zone_mismatch
+PASS  EX-02: source is spark (healthy stub run) — spark
+PASS  EX-02: action is check_tag (same as reference) — check_tag
+PASS  EX-02: one sentence, ≤140 chars (103) — Only three cars in the zone for Wave R1's four tags — check which called car is missing before loading.
+PASS  EX-02: line names "R1" — Only three cars in the zone for Wave R1's four tags — check which called car is missing before loading.
+PASS  EX-02: no prohibited instruction — clean
+PASS  EX-02: stub line equals the scripted acceptable line (determinism evidence) — Only three cars in the zone for Wave R1's four tags — check which called car is missing before loading.
+PASS  EX-02: line does NOT guess which tag is missing — Only three cars in the zone for Wave R1's four tags — check which called car is missing before loading.
+PASS  EX-02: audit log marks the served line spark-prefetch — {"trigger":"zone_mismatch","source":"spark-prefetch"}
+
+== EX-03 — out-of-order arrival (SC-07) ==
+PASS  EX-03: in-order entry of 101 fires nothing — {"ok":true,"entry":{"tag":"101","lane":"left","wave":"L1","spot":1,"status":"entered","walkUp":false,"attempts":1}}
+PASS  EX-03: an exception line was produced — {"trigger":"out_of_order","instruction":"103 arrived before 102 — keep the board order and call 102's student with this wave as planned.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:27.865Z"}
+PASS  EX-03: trigger is out_of_order — out_of_order
+PASS  EX-03: source is spark (healthy stub run) — spark
+PASS  EX-03: action is info (same as reference) — info
+PASS  EX-03: one sentence, ≤140 chars (95) — 103 arrived before 102 — keep the board order and call 102's student with this wave as planned.
+PASS  EX-03: line names "103" — 103 arrived before 102 — keep the board order and call 102's student with this wave as planned.
+PASS  EX-03: line names "102" — 103 arrived before 102 — keep the board order and call 102's student with this wave as planned.
+PASS  EX-03: no prohibited instruction — clean
+PASS  EX-03: stub line equals the scripted acceptable line (determinism evidence) — 103 arrived before 102 — keep the board order and call 102's student with this wave as planned.
+
+== EX-04 — duplicate tag (SC-08) ==
+PASS  EX-04: duplicate attempt is refused by the guard — {"ok":false,"duplicate":true,"entry":{"tag":"214","lane":"left","wave":"L1","spot":2,"status":"on_board","walkUp":false,"attempts":2},"exception":{"trigger":"duplicate","instruction":"214 is already queued in Left, Wave 1, spot 2 — don't enter it again; the first entry stands.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:27.892Z"}}
+PASS  EX-04: an exception line was produced — {"trigger":"duplicate","instruction":"214 is already queued in Left, Wave 1, spot 2 — don't enter it again; the first entry stands.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:27.892Z"}
+PASS  EX-04: trigger is duplicate — duplicate
+PASS  EX-04: source is spark (healthy stub run) — spark
+PASS  EX-04: action is info (same as reference) — info
+PASS  EX-04: one sentence, ≤140 chars (93) — 214 is already queued in Left, Wave 1, spot 2 — don't enter it again; the first entry stands.
+PASS  EX-04: line names "214" — 214 is already queued in Left, Wave 1, spot 2 — don't enter it again; the first entry stands.
+PASS  EX-04: no prohibited instruction — clean
+PASS  EX-04: stub line equals the scripted acceptable line (determinism evidence) — 214 is already queued in Left, Wave 1, spot 2 — don't enter it again; the first entry stands.
+PASS  EX-04: exactly ONE entry for 214 exists on the board after the case — [{"tag":"214","lane":"left","wave":"L1","spot":2,"status":"on_board","walkUp":false,"attempts":2}]
+
+== EX-05 — HOLD placed, wave not yet loading (SC-09) ==
+PASS  EX-05: hold is live in the placeHold response — {"ok":true,"holdLive":true,"placedAt":1793367447909,"holdPlacedAt":"2026-10-30T13:37:27.909Z","exception":{"trigger":"hold_placed","instruction":"118 is on hold — keep it out of Wave L2's loading until the office clears the hold.","action":"keep_out_of_wave","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:27.912Z"}}
+PASS  EX-05 ordering: hold placed_at ≤ exception created_at (hold never waits on the agent) — hold=2026-10-30T13:37:27.909Z exception=2026-10-30T13:37:27.912Z
+PASS  EX-05: an exception line was produced — {"trigger":"hold_placed","instruction":"118 is on hold — keep it out of Wave L2's loading until the office clears the hold.","action":"keep_out_of_wave","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:27.912Z"}
+PASS  EX-05: trigger is hold_placed — hold_placed
+PASS  EX-05: source is spark (healthy stub run) — spark
+PASS  EX-05: action is keep_out_of_wave (same as reference) — keep_out_of_wave
+PASS  EX-05: one sentence, ≤140 chars (83) — 118 is on hold — keep it out of Wave L2's loading until the office clears the hold.
+PASS  EX-05: line names "118" — 118 is on hold — keep it out of Wave L2's loading until the office clears the hold.
+PASS  EX-05: no prohibited instruction — clean
+PASS  EX-05: stub line equals the scripted acceptable line (determinism evidence) — 118 is on hold — keep it out of Wave L2's loading until the office clears the hold.
+PASS  EX-05: hold stands on the board — ["118"]
+
+== EX-06 — HOLD placed while the wave is loading (SC-10) ==
+PASS  EX-06: an exception line was produced — {"trigger":"hold_placed","instruction":"203 is now on hold mid-wave — stop 203 here and finish loading 201, 202, and 204 around it.","action":"keep_out_of_wave","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:27.931Z"}
+PASS  EX-06: trigger is hold_placed — hold_placed
+PASS  EX-06: source is spark (healthy stub run) — spark
+PASS  EX-06: action is keep_out_of_wave (same as reference) — keep_out_of_wave
+PASS  EX-06: one sentence, ≤140 chars (91) — 203 is now on hold mid-wave — stop 203 here and finish loading 201, 202, and 204 around it.
+PASS  EX-06: line names "203" — 203 is now on hold mid-wave — stop 203 here and finish loading 201, 202, and 204 around it.
+PASS  EX-06: line names "201" — 203 is now on hold mid-wave — stop 203 here and finish loading 201, 202, and 204 around it.
+PASS  EX-06: line names "204" — 203 is now on hold mid-wave — stop 203 here and finish loading 201, 202, and 204 around it.
+PASS  EX-06: no prohibited instruction — clean
+PASS  EX-06: stub line equals the scripted acceptable line (determinism evidence) — 203 is now on hold mid-wave — stop 203 here and finish loading 201, 202, and 204 around it.
+
+== EX-07 — walk-up, no car (SC-11) ==
+PASS  EX-07 setup: zone VERIFIED at 4 (walk-up must not change the vehicle expectation) — {"ok":true,"lane":"left","count":4,"expected":4,"status":"VERIFIED","flagRaised":false,"streak":0,"masksReturned":4,"masksCounted":4,"adapter":"stub","modelId":"stub:sam-3.1-scripted","latencyMs":0}
+PASS  EX-07: an exception line was produced — {"trigger":"walk_up","instruction":"132 is a walk-up, not a car — call the student to the pickup point and keep them out of the vehicle waves.","action":"keep_out_of_wave","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:27.955Z"}
+PASS  EX-07: trigger is walk_up — walk_up
+PASS  EX-07: source is spark (healthy stub run) — spark
+PASS  EX-07: action is keep_out_of_wave (same as reference) — keep_out_of_wave
+PASS  EX-07: one sentence, ≤140 chars (106) — 132 is a walk-up, not a car — call the student to the pickup point and keep them out of the vehicle waves.
+PASS  EX-07: line names "132" — 132 is a walk-up, not a car — call the student to the pickup point and keep them out of the vehicle waves.
+PASS  EX-07: no prohibited instruction — clean
+PASS  EX-07: stub line equals the scripted acceptable line (determinism evidence) — 132 is a walk-up, not a car — call the student to the pickup point and keep them out of the vehicle waves.
+
+== EX-08 — no-show at the Still Waiting sweep (SC-12) ==
+PASS  EX-08: sweep surfaces 225 as still waiting — {"ok":true,"stillWaiting":["225","226","227","228"],"exception":{"trigger":"no_show_candidate","instruction":"225 never arrived — office should contact the guardian; mark it no-show only when you confirm.","action":"sweep","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:27.964Z"}}
+PASS  EX-08: an exception line was produced — {"trigger":"no_show_candidate","instruction":"225 never arrived — office should contact the guardian; mark it no-show only when you confirm.","action":"sweep","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:27.964Z"}
+PASS  EX-08: trigger is no_show_candidate — no_show_candidate
+PASS  EX-08: source is spark (healthy stub run) — spark
+PASS  EX-08: action is sweep (same as reference) — sweep
+PASS  EX-08: one sentence, ≤140 chars (94) — 225 never arrived — office should contact the guardian; mark it no-show only when you confirm.
+PASS  EX-08: line names "225" — 225 never arrived — office should contact the guardian; mark it no-show only when you confirm.
+PASS  EX-08: no prohibited instruction — clean
+PASS  EX-08: stub line equals the scripted acceptable line (determinism evidence) — 225 never arrived — office should contact the guardian; mark it no-show only when you confirm.
+
+== Negative tests — situations that must produce NO agent call ==
+PASS  NEG-1 zone match: VERIFIED, no exception attached
+PASS  NEG-1 zone match: exception log stays empty — log=0
+PASS  NEG-1 zone match: no current line on the board
+PASS  NEG-2 single mismatching still: CHECKING, no call — status=CHECKING log=0
+PASS  NEG-3 normal wave release / loading / departure: no call — log=0
+PASS  NEG-4 HOLD removal by a human: no call, line not reopened, hold gone — log 1→1, current=confirmed, holds=[]
+
+== Prohibited-instruction guard — a dangerous Spark line is discarded ==
+PASS  GUARD: prohibited line discarded → verbatim fallback shown, source rule-fallback — {"trigger":"hold_placed","instruction":"203 is on hold — stop it here; the rest of Wave R1 continues.","action":"keep_out_of_wave","source":"rule-fallback","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:28.001Z"}
+
+== Timeout drill ×8 — stub delayed 4000ms past the 3s cap ==
+PASS  DRILL EX-01: fallback template is the scripted line verbatim — Zone count is 5, wave L1 expects 4 — hold the wave and check the extra car.
+PASS  DRILL EX-01: fallback displayed at the cap (elapsed 3003ms, before the 4000ms stub) — source=rule-fallback elapsed=3003ms line="Zone count is 5, wave L1 expects 4 — hold the wave and check the extra car."
+PASS  DRILL EX-01: late Spark line did NOT overwrite the fallback — current="Zone count is 5, wave L1 expects 4 — hold the wave and check the extra car." source=rule-fallback
+PASS  DRILL EX-01: log records source rule-fallback — {"trigger":"zone_mismatch","source":"rule-fallback"}
+PASS  DRILL EX-02: fallback template is the scripted line verbatim — Zone count is 3, wave R1 expects 4 — check for the missing car before loading.
+PASS  DRILL EX-02: fallback displayed at the cap (elapsed 3002ms, before the 4000ms stub) — source=rule-fallback elapsed=3002ms line="Zone count is 3, wave R1 expects 4 — check for the missing car before loading."
+PASS  DRILL EX-02: late Spark line did NOT overwrite the fallback — current="Zone count is 3, wave R1 expects 4 — check for the missing car before loading." source=rule-fallback
+PASS  DRILL EX-02: log records source rule-fallback — {"trigger":"zone_mismatch","source":"rule-fallback"}
+PASS  DRILL EX-03: fallback template is the scripted line verbatim — 103 arrived ahead of 102 — load in board order and watch for 102 next.
+PASS  DRILL EX-03: fallback displayed at the cap (elapsed 3002ms, before the 4000ms stub) — source=rule-fallback elapsed=3002ms line="103 arrived ahead of 102 — load in board order and watch for 102 next."
+PASS  DRILL EX-03: late Spark line did NOT overwrite the fallback — current="103 arrived ahead of 102 — load in board order and watch for 102 next." source=rule-fallback
+PASS  DRILL EX-03: log records source rule-fallback — {"trigger":"out_of_order","source":"rule-fallback"}
+PASS  DRILL EX-04: fallback template is the scripted line verbatim — 214 is already on the board in Left — do not re-enter it.
+PASS  DRILL EX-04: fallback displayed at the cap (elapsed 3002ms, before the 4000ms stub) — source=rule-fallback elapsed=3002ms line="214 is already on the board in Left — do not re-enter it."
+PASS  DRILL EX-04: late Spark line did NOT overwrite the fallback — current="214 is already on the board in Left — do not re-enter it." source=rule-fallback
+PASS  DRILL EX-04: log records source rule-fallback — {"trigger":"duplicate","source":"rule-fallback"}
+PASS  DRILL EX-05: fallback template is the scripted line verbatim — 118 is on hold — do not load it until the office clears it.
+PASS  DRILL EX-05: fallback displayed at the cap (elapsed 3002ms, before the 4000ms stub) — source=rule-fallback elapsed=3002ms line="118 is on hold — do not load it until the office clears it."
+PASS  DRILL EX-05: late Spark line did NOT overwrite the fallback — current="118 is on hold — do not load it until the office clears it." source=rule-fallback
+PASS  DRILL EX-05: log records source rule-fallback — {"trigger":"hold_placed","source":"rule-fallback"}
+PASS  DRILL EX-06: fallback template is the scripted line verbatim — 203 is on hold — stop it here; the rest of Wave R1 continues.
+PASS  DRILL EX-06: fallback displayed at the cap (elapsed 3001ms, before the 4000ms stub) — source=rule-fallback elapsed=3001ms line="203 is on hold — stop it here; the rest of Wave R1 continues."
+PASS  DRILL EX-06: late Spark line did NOT overwrite the fallback — current="203 is on hold — stop it here; the rest of Wave R1 continues." source=rule-fallback
+PASS  DRILL EX-06: log records source rule-fallback — {"trigger":"hold_placed","source":"rule-fallback"}
+PASS  DRILL EX-07: fallback template is the scripted line verbatim — 132 arrived on foot — handle at the pickup point, not in a car wave.
+PASS  DRILL EX-07: fallback displayed at the cap (elapsed 3002ms, before the 4000ms stub) — source=rule-fallback elapsed=3002ms line="132 arrived on foot — handle at the pickup point, not in a car wave."
+PASS  DRILL EX-07: late Spark line did NOT overwrite the fallback — current="132 arrived on foot — handle at the pickup point, not in a car wave." source=rule-fallback
+PASS  DRILL EX-07: log records source rule-fallback — {"trigger":"walk_up","source":"rule-fallback"}
+PASS  DRILL EX-08: fallback template is the scripted line verbatim — 225 is still waiting and never arrived — contact the guardian before marking no-show.
+PASS  DRILL EX-08: fallback displayed at the cap (elapsed 3003ms, before the 4000ms stub) — source=rule-fallback elapsed=3003ms line="225 is still waiting and never arrived — contact the guardian before marking no-show."
+PASS  DRILL EX-08: late Spark line did NOT overwrite the fallback — current="225 is still waiting and never arrived — contact the guardian before marking no-show." source=rule-fallback
+PASS  DRILL EX-08: log records source rule-fallback — {"trigger":"no_show_candidate","source":"rule-fallback"}
+
+== Payload hygiene — anything beyond the contract fails on sight ==
+PASS  HYGIENE: payload with an injected student_name field fails on sight — payload_hygiene: payload: unexpected field "student_name"
+PASS  HYGIENE: student_name nested in an entry also fails on sight — payload_hygiene: entries[0]: unexpected field "student_name"
+PASS  HYGIENE: zone_mismatch at consecutive_mismatches 1 is refused (EX-01 rule) — payload_hygiene: zone_mismatch below the 2-still debounce (consecutive_mismatches < 2)
+PASS  HYGIENE: rejected payloads produced no log rows — log 10→10
+
+== HOLD hard block — a hold stops entry AND progression, not just advises ==
+PASS  HB-0: hold placed on the not-yet-entered 119 — {"ok":true,"holdLive":true,"placedAt":1793367483238,"holdPlacedAt":"2026-10-30T13:38:03.238Z","exception":{"trigger":"hold_placed","instruction":"119 is on hold — do not load it until the office clears it.","action":"keep_out_of_wave","source":"rule-fallback","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:38:03.239Z"}}
+PASS  HB-1: enterTag on a held tag → held outcome (a 200 safety outcome like duplicate, not an error) — {"ok":false,"held":true,"tag":"119"}
+PASS  HB-1: NO entry row exists for 119 afterwards (the hold blocked the write itself) — []
+PASS  HB-1: the refused entry fired no agent line — log 1→1
+PASS  HB-2: advancing a held tag (loaded) → HTTP 422 tag_on_hold with a plain-language reason — {"status":422,"body":{"error":"tag_on_hold: tag 118 is on HOLD — it cannot move to \"loaded\" until the office clears the hold"}}
+PASS  HB-2: the held entry's status did not move (still entered) — [{"tag":"118","lane":"left","wave":"L1","spot":1,"status":"entered","walkUp":false,"attempts":1}]
+PASS  HB-3: a non-advancing status on a held tag stays allowed — {"status":200,"body":{"ok":true}}
+PASS  HB-4: after the hold clears, 119 enters normally — {"ok":true,"entry":{"tag":"119","lane":"left","wave":"L1","spot":2,"status":"entered","walkUp":false,"attempts":1}}
+PASS  HB-4: after the hold clears, 118 advances (loaded) normally — {"status":200,"body":{"ok":true}}
+
+== Persistence hygiene — the exception path stores no image/name data ==
+PASS  LOG: exception log columns are count/state only (trigger, source, latency, action) — id,school_id,ts,trigger,source,latency_ms,action
+PASS  LOG: no image/name/photo column in the current-exception table — school_id,trigger,instruction,action,source,latency_ms,status,created_at,updated_at
+PASS  HYGIENE: the injected name appears nowhere in the DB file
+
+== Prefetch hardening — speculative advise at CHECKING, served at the flag ==
+PASS  PF-A: the speculative compute persists NOTHING (no log row at CHECKING) — log 2→2
+PASS  PF-A: prefetched line served at the flag — adapter called ONCE (at CHECKING, not again) — calls=1
+PASS  PF-A: board-facing source stays spark and the line is the scripted mismatch line — {"trigger":"zone_mismatch","instruction":"Five cars in the zone but Wave L1 has four — hold the wave and check for an extra car before loading.","action":"hold_wave","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:38:03.249Z"}
+PASS  PF-A: audit log records the provenance as spark-prefetch — {"trigger":"zone_mismatch","source":"spark-prefetch"}
+PASS  PF-B1: count changed (5→3) → fresh race ran (adapter called at prefetch AND at the flag) — calls=2 source=spark
+PASS  PF-B1: audit log records a plain spark serve, not a prefetch — {"trigger":"zone_mismatch","source":"spark"}
+PASS  PF-B2: tags changed (104 not in the flag payload) → fresh race ran — calls=2 source=spark
+PASS  PF-B2: audit log records a plain spark serve — {"trigger":"zone_mismatch","source":"spark"}
+PASS  PF-C: after discardPrefetch the flag runs the fresh race (no stale serve) — calls=2
+PASS  PF-C: audit log records a plain spark serve — {"trigger":"zone_mismatch","source":"spark"}
+PASS  PF-D: the hanging speculative call is capped, not waited out (elapsed 3000ms) — elapsed=3000ms
+PASS  PF-D: fallback displayed at the cap at flag time, verbatim (both calls hung) — source=rule-fallback elapsed=3003ms line="Zone count is 5, wave L1 expects 4 — hold the wave and check the extra car."
+PASS  PF-D: both calls really happened (speculative + flag race) — calls=2
+PASS  PF-D: late Spark lines did NOT overwrite the fallback — current="Zone count is 5, wave L1 expects 4 — hold the wave and check the extra car." source=rule-fallback
+PASS  PF-E: still 1 CHECKING (prefetch arms silently), still 2 VERIFIED — no exception attached either time — s1=CHECKING s2=VERIFIED
+PASS  PF-E: the cleared episode logged no zone_mismatch line and left the current exception untouched — zmLog 0→0
+
+EXCEPTION GATE: 154/154 PASS, 0 FAIL
+ALL EXCEPTION CHECKS PASSED

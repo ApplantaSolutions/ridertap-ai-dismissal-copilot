@@ -1,0 +1,61 @@
+== SAM codec — published vectors ==
+PASS  one_bit 5x5 protocol example decodes exactly — ones=10
+PASS  captured lossless: one segment parsed — n=1
+PASS  captured lossless: box + mask dims — {"x1":513,"y1":371,"x2":523,"y2":381,"w":1440,"h":900}
+PASS  captured lossless: raster matches the published decode (121 px) — ones=89
+PASS  captured lossless: centroid math (89 px, box-offset) — centroid=(518.1460674157304, 376.1123595505618)
+
+== SAM parser — spike-run/sam-result2.json (real boxes, GT 3 cars) ==
+PASS  response JSON: output_text lane extracted
+PASS  parser yields exactly 3 boxes + 3 masks (ground truth 3/3) — segments=3, file boxCount=3, maskCount=3
+PASS  parsed boxes deep-equal the capture's boxes
+PASS  adapter mapping yields 3 masks — n=3
+PASS  mask 0: centroid + area match the reference decode — centroid=(0.7359375, 0.5029850746268657) area=0.07479477611940298 ones=16036
+PASS  mask 1: centroid + area match the reference decode — centroid=(0.796875, 0.39104477611940297) area=0.013978544776119402 ones=2997
+PASS  mask 2: centroid + area match the reference decode — centroid=(0.5105782492292714, 0.5640354934721169) area=0.057490671641791044 ones=12326
+PASS  sam-result.json excerpt carries a real mask prefix
+PASS  truncated real payload fails closed (throws, no partial count)
+
+== Spark adapter — recorded live completions + request shape ==
+PASS  recorded valid completion parses to its line — {"instruction":"Left lane Wave 1: 5 cars in zone, 4 tags scanned. Verify extra vehicle before release.","action":"check_tag"}
+PASS  recorded empty-content completion (streaming failure) → null (fallback trigger)
+PASS  null content → null
+PASS  action outside the product enum (release_wave) → null
+PASS  missing confidence → null; over-length instruction → null
+PASS  request: non-streaming shape, minimal effort, max_tokens >= 1000 (starvation fix) — max_tokens=1500
+PASS  request: strict json_schema with the PRODUCT action enum
+PASS  request: user content carries scenario brief + untouched board_state
+PASS  B8 fix: walk_up brief states a walk-up does not change the vehicle count and a verified wave is NOT held
+PASS  no key → live_adapter_error (service falls back) — live_adapter_error: META_API_KEY is not configured — the liv
+PASS  Contributor model ID refused before any call — contributor_model_forbidden: the configured Spark model ID n
+
+== Transcribe adapter — multipart builder over the real walker clip ==
+PASS  request JSON = the measured contract (PUSH_TO_TALK / WAV / keywords = in-play tags) — {"mode":"PUSH_TO_TALK","model":"muse-voice-transcribe-1.0","audioEncoding":"WAV","keywords":["345","101","102","103","104","354"]}
+PASS  empty closed set → keywords omitted (no empty bias)
+PASS  multipart: JSON part named 'request' (application/json) with the keywords
+PASS  multipart: WAV part named 'audio' carries the clip bytes unchanged — size=51244 vs clip=51244
+PASS  no key → live_adapter_error (service asks for a repeat) — live_adapter_error: META_API_KEY is not configured — the liv
+
+== WAV encoder — client/src/wav.ts (PTT mic capture) ==
+PASS  downsample 48k→16k: count + box averages — n=3 values=1,4,7
+PASS  downsample at target rate: untouched copy
+PASS  wav: RIFF/WAVE/fmt/data structure — bytes=54
+PASS  wav: PCM format fields — mono, 16-bit, 16 kHz
+PASS  wav: sample values encode exactly (incl. clamp at full scale)
+PASS  wav: 48k input downsamples to 1600 samples under a 16 kHz header — bytes=3244
+PASS  wav: bytesToBase64 round-trips
+
+== Numbers — the widened CONFIRM guard's two confusion shapes ==
+PASS  transposition twins are near matches (345/354, 212/221) — and two digits off by Hamming
+PASS  one digit off is Hamming-1 and NOT a transposition (101/102, 212/214)
+PASS  confusable = transposition OR one digit off (both shapes covered)
+PASS  unrelated tags, identical tags, and different lengths are never confusable
+
+== SAM adapter — fail-closed without a key ==
+PASS  no key → live_adapter_error, no count produced — live_adapter_error: META_API_KEY is not configured — the liv
+
+== Adapter selection — live defaults, stub override ==
+PASS  defaults: live adapters with the exact catalog model IDs — sam=sam-3.1 spark=muse-spark-1.3 transcribe=muse-voice-transcribe-1.0
+PASS  env override: stub adapters (the gate harnesses' mode)
+
+ALL PASS — unit tests (live adapters)

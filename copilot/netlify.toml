@@ -1,0 +1,30 @@
+# RiderTap COPILOT — STAGING Netlify configuration.
+# This site is SEPARATE from production (ridertap.netlify.app /
+# 92bdda35-c5a0-48ad-9342-04fff1372d85), which is never touched during
+# the hackathon. Deploy via the API file-digest method ONLY (the base's
+# scripts/netlify-digest-deploy.py pattern, staging site name) — the ZIP
+# deploy route does not bundle functions and is banned.
+
+[build]
+  publish = "public"
+  functions = "functions-dist"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/actions"
+  to = "/.netlify/functions/actions"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"

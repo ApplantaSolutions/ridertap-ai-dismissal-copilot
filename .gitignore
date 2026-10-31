@@ -1,0 +1,22 @@
+# Dependencies (also excluded from the baseline copy)
+node_modules/
+.bun-cache/
+
+# Local databases — staging stand-ins and test DBs are never committed
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+
+# Build outputs of the Copilot module (rebuilt from source)
+copilot/dist/
+copilot/public/assets/
+
+# Local test evidence is kept under test-results/ as text logs only
+copilot/test-results/*.sqlite*
+copilot/dist/
+copilot/public/
+copilot/functions-dist/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm

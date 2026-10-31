@@ -1,0 +1,62 @@
+PASS  production schema applies cleanly; 3 tenant schools seeded
+
+== A — two-walker interleave (two processes, ping-pong barriers)
+PASS  walker A (left): 101–105 accepted, W1 S1–4 then W2 S1
+PASS  walker B (right): 201–205 accepted, W1 S1–4 then W2 S1
+
+== A2 — cross-connection duplicate guard
+PASS  B's session re-entering A's 101 → duplicate, A's placement reported
+PASS  A's session re-entering B's 201 → duplicate, B's placement reported
+PASS  exactly one row for 101 after both duplicate attempts
+
+== A3 — per-lane wave release independence
+PASS  Left W1 releases on its own count (4 in / 4 ready)
+PASS  Right W1 stays blocked while its cars are not loaded (not_ready, 0 ready)
+
+== A4 — holds: block + Proof Report session counting
+PASS  advanceEntry on a held car is refused (reason=held)
+PASS  Right W1 releases after its own cars load
+
+== A5 — End Dismissal writes the Proof Report summary
+PASS  summary counts: 8 loaded, 0 no-show, 2 waves, 2 still waiting (105, 205) — {"date":"2026-10-24","totalLoaded":8,"totalNoShow":0,"wavesRun":2,"holdsPlaced":2,"stillWaiting":2,"firstCarAt":"2026-10-24T13:53:08.990Z","lastCarAt":"2026-10-24T13:53:09.685Z","startedAt":"2026-10-24T13:53:08.990Z","endedAt":"2026-10-24T13:53:09.722Z"}
+PASS  summary holdsPlaced = 2 (set+cleared holds still count)
+PASS  summary startedAt == first entry's enteredAt (duration anchor) — 2026-10-24T13:53:08.990Z vs 2026-10-24T13:53:08.990Z
+PASS  summary duration endedAt − startedAt >= 0 and date matches endedAt
+PASS  board purged; getState summaries=[summary], lastSummary=summary
+
+== B — second dismissal: no-show + history ordering
+PASS  wave with 1 loaded + 1 no-show releases (count check counts both)
+PASS  summary 2: 1 loaded, 1 no-show, 1 wave, 0 holds, 0 still waiting — {"date":"2026-10-24","totalLoaded":1,"totalNoShow":1,"wavesRun":1,"holdsPlaced":0,"stillWaiting":0,"firstCarAt":"2026-10-24T13:53:09.807Z","lastCarAt":"2026-10-24T13:53:09.889Z","startedAt":"2026-10-24T13:53:09.807Z","endedAt":"2026-10-24T13:53:09.931Z"}
+PASS  history holds both days, oldest first; lastSummary is day 2
+
+== C — tenant isolation, undo session semantics, saveSetup
+PASS  school B sees its own profile and none of school A's data
+PASS  school B can use car 101 independently of school A
+PASS  school B summary: 0 loaded, 1 still waiting (101 never loaded)
+PASS  school A history untouched by school B's dismissal (still 2)
+PASS  undo removes newest entry first (402, then 401)
+PASS  after undo-all + re-entry, summary startedAt re-stamps to the new first entry
+PASS  saveSetup persists (spotsPerWave 8 → 5 for school B only)
+
+== D — dispatch + access gate
+PASS  missing school code → 401
+PASS  unknown school code → 403
+PASS  seedDemo / resetDemo are NOT ported (400 unknown_action)
+
+== E — true same-moment race: exactly one winner (5 rounds)
+PASS  race round 1 (701): 1 winner, 1 duplicate rejection, 1 row — winners=1 losers=1 rows=1
+PASS  race round 2 (711): 1 winner, 1 duplicate rejection, 1 row — winners=1 losers=1 rows=1
+PASS  race round 3 (721): 1 winner, 1 duplicate rejection, 1 row — winners=1 losers=1 rows=1
+PASS  race round 4 (731): 1 winner, 1 duplicate rejection, 1 row — winners=1 losers=1 rows=1
+PASS  race round 5 (741): 1 winner, 1 duplicate rejection, 1 row — winners=1 losers=1 rows=1
+
+== F — the bundled zip itself (Lambda handler export)
+PASS  function bundles (bun build, node/cjs, @libsql/client external) — Bundled 1 module in 15ms
+
+  actions.js  18.62 KB  (entry point)
+PASS  actions.zip written (actions.js + node_modules tree)
+PASS  bundled handler: getState returns the bundle school
+PASS  bundled handler: addEntry ok, duplicate rejected
+PASS  bundled handler: endDismissal summary carries Proof Report fields
+
+ALL FINAL-BUNDLE CHECKS PASSED

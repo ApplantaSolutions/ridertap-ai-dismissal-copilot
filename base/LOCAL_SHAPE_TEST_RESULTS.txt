@@ -1,0 +1,9 @@
+PASS  all 10 interleaved entries accepted
+PASS  per-lane wave/spot assignment identical to local sim (L: W1S1-4+W2S1, R: same)
+PASS  duplicate from the OTHER connection rejected
+PASS  exactly one row for 101 after duplicate attempt
+PASS  partial unique index rejects a raw duplicate active insert
+PASS  number 103 reusable after its car departed
+PASS  tenant isolation: 101 in another school accepted independently
+
+ALL CHECKS PASSED

@@ -1,0 +1,239 @@
+== health ==
+PASS  health answers ok — {"ok":true,"service":"ridertap-copilot","build":"build-2-exception-agent","samAdapter":"stub","samModel":"stub:sam-3.1-scripted","sparkAdapter":"stub","sparkModel":"stub:muse-spark-scripted","transcribeAdapter":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","db":"connected (local-file)","ts":"2026-10-30T13:37:17.607Z"}
+PASS  health reports the stub Transcribe adapter + model — transcribeAdapter=stub transcribeModel=stub:muse-voice-transcribe-scripted
+
+== VC-01 — single clean tag ==
+PASS  VC-01: outcome CONFIRM (212 live, one digit off 214 — nothing enters silently) — {"outcome":"CONFIRM","tag":"214","enteredTag":null,"suggestedTag":"212","prompt":"I heard 214 — 212 is also queued in Left. Enter 214?","message":"I heard 214 — 212 is also queued in Left. Enter 214?","language":"en","promptLanguage":"en","readBack":null,"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354"]}
+PASS  VC-01: prompt names the heard tag and the one-digit-off neighbor — I heard 214 — 212 is also queued in Left. Enter 214?
+PASS  VC-01: transcribe was biased toward the live closed set — ["212","214","221","345","354"]
+PASS  VC-01: nothing entered while the CONFIRM is pending — []
+PASS  VC-01: YES enters 214, outcome corrected — {"ok":true,"entered":"214","outcome":"corrected","readBack":"214","exception":{"trigger":"out_of_order","instruction":"214 arrived before 212 — keep the board order and call 212's student with this wave as planned.","action":"info","source":"spark","latencyMs":1,"status":"open","createdAt":"2026-10-30T13:37:17.670Z"}}
+PASS  VC-01: board holds exactly [214]
+PASS  VC-01: voice log records (left, 214, corrected) only — [{"lane":"left","tag":"214","outcome":"corrected"}]
+PASS  VC-01: read-back shows 214 — {"pending":null,"lastTag":"214","lastOutcome":"corrected"}
+PASS  VC-01 auto-fail sweep: board holds only spoken-and-in-set tags — board=["214"] allowed=["214"]
+PASS  VC-01 auto-fail sweep: no duplicate entries — board=["214"]
+
+== VC-02 — clean sequence of four (both confusion-pair members) ==
+PASS  VC-02: CONFIRM ×4 (twin-guarded, Fix 1), zero silent entries — ["CONFIRM","CONFIRM","CONFIRM","CONFIRM"]
+PASS  VC-02: each YES enters the heard tag (212, 221, 345, 354) — ["212","221","345","354"]
+PASS  VC-02: board shows 212, 221, 345, 354 in spoken order, one each — ["212","221","345","354"]
+PASS  VC-02 auto-fail sweep: board holds only spoken-and-in-set tags — board=["212","221","345","354"] allowed=["212","221","345","354"]
+PASS  VC-02 auto-fail sweep: no duplicate entries — board=["212","221","345","354"]
+
+== VC-03 — lane callout is routing, not digits ==
+PASS  VC-03: outcome CONFIRM on 214 (lane callout routed; neighbor guard held the entry) — {"outcome":"CONFIRM","tag":"214","enteredTag":null,"suggestedTag":"212","prompt":"I heard 214 — 212 is also queued in Left. Enter 214?","message":"I heard 214 — 212 is also queued in Left. Enter 214?","language":"en","promptLanguage":"en","readBack":null,"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354"]}
+PASS  VC-03: YES enters 214 — {"ok":true,"entered":"214","outcome":"corrected","readBack":"214","exception":{"trigger":"out_of_order","instruction":"214 arrived before 212 — keep the board order and call 212's student with this wave as planned.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:17.742Z"}}
+PASS  VC-03: 214 lands in Left exactly once, no phantom tag from 'left' — [{"tag":"214","lane":"left","wave":"L1","spot":2,"status":"entered","walkUp":false,"attempts":1}]
+PASS  VC-03 auto-fail sweep: board holds only spoken-and-in-set tags — board=["214"] allowed=["214"]
+PASS  VC-03 auto-fail sweep: no duplicate entries — board=["214"]
+
+== VC-04 — grouped and digit-by-digit normalize identically ==
+PASS  VC-04: 'three forty-five' → CONFIRM on 345 (grouped form normalized) — {"outcome":"CONFIRM","tag":"345","enteredTag":null,"suggestedTag":"354","prompt":"I heard 345 — 354 is also queued in Left. Enter 345?","message":"I heard 345 — 354 is also queued in Left. Enter 345?","language":"en","promptLanguage":"en","readBack":null,"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354"]}
+PASS  VC-04: YES enters 345 — {"ok":true,"entered":"345","outcome":"corrected","readBack":"345","exception":{"trigger":"out_of_order","instruction":"345 arrived before 212 — keep the board order and call 212's student with this wave as planned.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:17.750Z"}}
+PASS  VC-04: 'three five four' → CONFIRM on 354 (digit-by-digit, same digits) — {"outcome":"CONFIRM","tag":"354","enteredTag":null,"suggestedTag":"345","prompt":"I heard 354 — 345 is also queued in Left. Enter 354?","message":"I heard 354 — 345 is also queued in Left. Enter 354?","language":"en","promptLanguage":"en","readBack":"345","transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354"]}
+PASS  VC-04: YES enters 354 — {"ok":true,"entered":"354","outcome":"corrected","readBack":"354","exception":{"trigger":"out_of_order","instruction":"354 arrived before 212 — keep the board order and call 212's student with this wave as planned.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:17.754Z"}}
+PASS  VC-04 auto-fail sweep: board holds only spoken-and-in-set tags — board=["345","354"] allowed=["345","354"]
+PASS  VC-04 auto-fail sweep: no duplicate entries — board=["345","354"]
+
+== VC-05 — 345 heard again with 354 live: CONFIRM, both branches ==
+PASS  VC-05: outcome CONFIRM — {"outcome":"CONFIRM","tag":"345","enteredTag":null,"suggestedTag":"354","prompt":"345 is already queued in Left — did you mean 354?","message":"345 is already queued in Left — did you mean 354?","language":"en","promptLanguage":"en","readBack":null,"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354"]}
+PASS  VC-05: prompt is the scripted question, naming both tags — 345 is already queued in Left — did you mean 354?
+PASS  VC-05: NOTHING entered while the CONFIRM is pending — ["345"]
+PASS  VC-05: pending pair held server-side (345 → 354) — {"tag":"345","suggestedTag":"354","prompt":"345 is already queued in Left — did you mean 354?"}
+PASS  VC-05 YES: 354 entered, outcome corrected — {"ok":true,"entered":"354","outcome":"corrected","readBack":"354","exception":{"trigger":"out_of_order","instruction":"354 arrived before 212 — keep the board order and call 212's student with this wave as planned.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:17.776Z"}}
+PASS  VC-05 YES: board holds 345 and 354, one each (no duplicate 345) — ["345","354"]
+PASS  VC-05 YES: voice log records the correction (354, corrected) — [{"lane":"left","tag":"354","outcome":"corrected"}]
+PASS  VC-05 auto-fail sweep: board holds only spoken-and-in-set tags — board=["345","354"] allowed=["345","354"]
+PASS  VC-05 auto-fail sweep: no duplicate entries — board=["345","354"]
+PASS  VC-05 NO-branch: outcome CONFIRM again — {"outcome":"CONFIRM","tag":"345","enteredTag":null,"suggestedTag":"354","prompt":"345 is already queued in Left — did you mean 354?","message":"345 is already queued in Left — did you mean 354?","language":"en","promptLanguage":"en","readBack":null,"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354"]}
+PASS  VC-05 NO: nothing entered, pending cleared — {"ok":true,"entered":null,"outcome":"cancelled","readBack":null}
+PASS  VC-05 NO: 345 still single on the board — ["345"]
+PASS  VC-05 NO auto-fail sweep: board holds only spoken-and-in-set tags — board=["345"] allowed=["345"]
+PASS  VC-05 NO auto-fail sweep: no duplicate entries — board=["345"]
+
+== VC-06 — planted in-set error: known limit, graded on read-back + Undo ==
+PASS  VC-06: the clean in-set transcript is held for read-back (212, CONFIRM — confusable tags live) — {"outcome":"CONFIRM","tag":"212","enteredTag":null,"suggestedTag":"214","prompt":"I heard 212 — 214 is also queued in Left. Enter 212?","message":"I heard 212 — 214 is also queued in Left. Enter 212?","language":"en","promptLanguage":"en","readBack":null,"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354"]}
+PASS  VC-06: YES enters 212 as spoken — {"ok":true,"entered":"212","outcome":"corrected","readBack":"212"}
+PASS  VC-06: read-back prominently shows 212 — {"pending":null,"lastTag":"212","lastOutcome":"corrected"}
+PASS  VC-06: one-tap Undo removes 212 — {"ok":true,"removedTag":"212"}
+PASS  VC-06: board is empty after Undo (no residue) — []
+PASS  VC-06: 212 can be entered again cleanly (CONFIRM, not DUPLICATE — Undo left nothing behind) — {"outcome":"CONFIRM","tag":"212","enteredTag":null,"suggestedTag":"214","prompt":"I heard 212 — 214 is also queued in Left. Enter 212?","message":"I heard 212 — 214 is also queued in Left. Enter 212?","language":"en","promptLanguage":"en","readBack":null}
+PASS  VC-06: YES enters 212 again — {"ok":true,"entered":"212","outcome":"corrected","readBack":"212"}
+PASS  VC-06: the intended 221 then enters (CONFIRM — twin 212 live — YES enters it) — {"outcome":"CONFIRM","tag":"221","enteredTag":null,"suggestedTag":"212","prompt":"I heard 221 — 212 is also queued in Left. Enter 221?","message":"I heard 221 — 212 is also queued in Left. Enter 221?","language":"en","promptLanguage":"en","readBack":null}
+PASS  VC-06 auto-fail sweep: board holds only spoken-and-in-set tags — board=["221"] allowed=["221"]
+PASS  VC-06 auto-fail sweep: no duplicate entries — board=["221"]
+
+== VC-07 — 399 is not in the set: ASK-REPEAT, never a silent 359 ==
+PASS  VC-07: outcome ASK-REPEAT — {"outcome":"ASK-REPEAT","tag":null,"enteredTag":null,"message":"Didn't catch a matching tag — say it again.","language":"en","promptLanguage":"en","readBack":null,"needsTyping":false,"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","359","401"]}
+PASS  VC-07: nothing entered on the mishear (no silent correction to 359) — []
+PASS  VC-07: the clean repeat MATCHES 359, entered once — {"outcome":"MATCHED","tag":"359","enteredTag":"359","message":"Entered 359.","language":"en","promptLanguage":"en","readBack":"359","exception":{"trigger":"out_of_order","instruction":"359 arrived before 212 — keep the board order and call 212's student with this wave as planned.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:17.852Z"},"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","359","401"]}
+PASS  VC-07 auto-fail sweep: board holds only spoken-and-in-set tags — board=["359"] allowed=["359"]
+PASS  VC-07 auto-fail sweep: no duplicate entries — board=["359"]
+
+== VC-08 — homophone noise: 'for oh one' → 401, no phantom tag ==
+PASS  VC-08: outcome MATCHED 401 (no ASK-REPEAT, no phantom tag) — {"outcome":"MATCHED","tag":"401","enteredTag":"401","message":"Entered 401.","language":"en","promptLanguage":"en","readBack":"401","exception":{"trigger":"out_of_order","instruction":"401 arrived before 212 — keep the board order and call 212's student with this wave as planned.","action":"info","source":"spark","latencyMs":1,"status":"open","createdAt":"2026-10-30T13:37:17.880Z"},"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354","401"]}
+PASS  VC-08 variant 'tag for 01': resolves to the same 401 (DUPLICATE, still one entry) — {"outcome":"DUPLICATE","tag":"401","enteredTag":null,"message":"401 is already on the board — the first entry stands.","language":"en","promptLanguage":"en","readBack":"401","exception":{"trigger":"duplicate","instruction":"401 is already queued in Left, Wave 1, spot 6 — don't enter it again; the first entry stands.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:17.889Z"}}
+PASS  VC-08: board holds exactly one entry, 401 — ["401"]
+PASS  VC-08 auto-fail sweep: board holds only spoken-and-in-set tags — board=["401"] allowed=["401"]
+PASS  VC-08 auto-fail sweep: no duplicate entries — board=["401"]
+
+== VC-09 — duplicate spoken after VOICE entry ==
+PASS  VC-09 setup: 214 held for read-back CONFIRM (212 live, one digit off) — {"outcome":"CONFIRM","tag":"214","enteredTag":null,"suggestedTag":"212","prompt":"I heard 214 — 212 is also queued in Left. Enter 214?","message":"I heard 214 — 212 is also queued in Left. Enter 214?","language":"en","promptLanguage":"en","readBack":null}
+PASS  VC-09 setup: YES enters 214 by voice — {"ok":true,"entered":"214","outcome":"corrected","readBack":"214","exception":{"trigger":"out_of_order","instruction":"214 arrived before 212 — keep the board order and call 212's student with this wave as planned.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:17.928Z"}}
+PASS  VC-09: outcome DUPLICATE — {"outcome":"DUPLICATE","tag":"214","enteredTag":null,"message":"214 is already on the board — the first entry stands.","language":"en","promptLanguage":"en","readBack":"214","exception":{"trigger":"duplicate","instruction":"214 is already queued in Left, Wave 1, spot 2 — don't enter it again; the first entry stands.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:17.935Z"},"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354"]}
+PASS  VC-09: EX-04 fires through the voice path (behavior consistent with typed duplicates) — {"trigger":"duplicate","instruction":"214 is already queued in Left, Wave 1, spot 2 — don't enter it again; the first entry stands.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:17.935Z"}
+PASS  VC-09: exactly one 214; original entry untouched (spot/status), attempt counted — [{"tag":"214","lane":"left","wave":"L1","spot":2,"status":"entered","walkUp":false,"attempts":2}]
+PASS  VC-09 auto-fail sweep: board holds only spoken-and-in-set tags — board=["214"] allowed=["214"]
+PASS  VC-09 auto-fail sweep: no duplicate entries — board=["214"]
+
+== VC-10 — duplicate spoken after TYPED entry ==
+PASS  VC-10: outcome DUPLICATE (board state decides, not voice history; the passed twin 212 is no CONFIRM) — {"outcome":"DUPLICATE","tag":"221","enteredTag":null,"message":"221 is already on the board — the first entry stands.","language":"en","promptLanguage":"en","readBack":null,"exception":{"trigger":"duplicate","instruction":"221 is already queued in Left, Wave 1, spot 3 — don't enter it again; the first entry stands.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:17.955Z"},"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354"]}
+PASS  VC-10: EX-04 fires, exactly one 221, spot unchanged — {"trigger":"duplicate","instruction":"221 is already queued in Left, Wave 1, spot 3 — don't enter it again; the first entry stands.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:17.955Z"}
+PASS  VC-10 auto-fail sweep: board holds only spoken-and-in-set tags — board=["221"] allowed=["221"]
+PASS  VC-10 auto-fail sweep: no duplicate entries — board=["221"]
+
+== VC-11 — foreign tag 999: ASK-REPEAT every time, then type-it direction ==
+PASS  VC-11: ASK-REPEAT shown each time — ["ASK-REPEAT","ASK-REPEAT","ASK-REPEAT"]
+PASS  VC-11: after two failed repeats the walker is directed to type it / check with the office — Didn't catch a matching tag — say it again. If it keeps missing, type the tag or check with the office.
+PASS  VC-11: zero entries across all repeats; no in-set substitute suggested — []
+PASS  VC-11: each failure logged as (repeat, no tag) — [{"lane":"left","tag":null,"outcome":"repeat"},{"lane":"left","tag":null,"outcome":"repeat"},{"lane":"left","tag":null,"outcome":"repeat"}]
+PASS  VC-11 auto-fail sweep: board holds only spoken-and-in-set tags — board=[] allowed=[]
+PASS  VC-11 auto-fail sweep: no duplicate entries — board=[]
+
+== VC-12 — 347 near the pair but not equal: no auto-correction ==
+PASS  VC-12: outcome ASK-REPEAT — {"outcome":"ASK-REPEAT","tag":null,"enteredTag":null,"message":"Didn't catch a matching tag — say it again.","language":"en","promptLanguage":"en","readBack":null,"needsTyping":false,"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354"]}
+PASS  VC-12: nothing entered (347 was NOT corrected into 345 or 354) — []
+PASS  VC-12: on repeat with transcript 345, CONFIRM (twin live), YES enters 345 — {"outcome":"CONFIRM","tag":"345","enteredTag":null,"suggestedTag":"354","prompt":"I heard 345 — 354 is also queued in Left. Enter 345?","message":"I heard 345 — 354 is also queued in Left. Enter 345?","language":"en","promptLanguage":"en","readBack":null,"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354"]}
+PASS  VC-12 auto-fail sweep: board holds only spoken-and-in-set tags — board=["345"] allowed=["345"]
+PASS  VC-12 auto-fail sweep: no duplicate entries — board=["345"]
+
+== VC-13 — playground noise, clean read (resolver level) ==
+PASS  VC-13: target transcript → CONFIRM on 212 (twin guard, not a noise ASK-REPEAT), YES enters it — {"outcome":"CONFIRM","tag":"212","enteredTag":null,"suggestedTag":"214","prompt":"I heard 212 — 214 is also queued in Left. Enter 212?","message":"I heard 212 — 214 is also queued in Left. Enter 212?","language":"en","promptLanguage":"en","readBack":null,"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354"]}
+PASS  VC-13 auto-fail sweep: board holds only spoken-and-in-set tags — board=["212"] allowed=["212"]
+PASS  VC-13 auto-fail sweep: no duplicate entries — board=["212"]
+
+== VC-14 — ambient numbers, NO push-to-talk: nothing happens at all ==
+PASS  VC-14: utterance with no PTT session is refused at the gate — {"error":"ptt_required: no push-to-talk session token"}
+PASS  VC-14: a non-session token is refused the same way — {"error":"ptt_required: unknown push-to-talk session"}
+PASS  VC-14: an ended PTT session takes no input — {"error":"ptt_required: push-to-talk session already ended"}
+PASS  VC-14: zero entries
+PASS  VC-14: zero resolver events (voice log empty) and zero exception calls — voiceLog=0 exceptionLog=0
+PASS  VC-14: no voice state was created by ambient audio — {"pending":null,"lastTag":null,"lastOutcome":null}
+PASS  VC-14 auto-fail sweep: board holds only spoken-and-in-set tags — board=[] allowed=[]
+PASS  VC-14 auto-fail sweep: no duplicate entries — board=[]
+
+== VC-15 — wind-degraded partial '3 4': ASK-REPEAT, no auto-completion ==
+PASS  VC-15: degraded transcript → ASK-REPEAT — {"outcome":"ASK-REPEAT","tag":null,"enteredTag":null,"message":"Didn't catch a matching tag — say it again.","language":"en","promptLanguage":"en","readBack":null,"needsTyping":false,"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354"]}
+PASS  VC-15: no partial entry (the partial was NOT completed into 354 or 345) — []
+PASS  VC-15: clean repeat → CONFIRM (twin live), YES enters 354 — {"outcome":"CONFIRM","tag":"354","enteredTag":null,"suggestedTag":"345","prompt":"I heard 354 — 345 is also queued in Left. Enter 354?","message":"I heard 354 — 345 is also queued in Left. Enter 354?","language":"en","promptLanguage":"en","readBack":null,"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354"]}
+PASS  VC-15 auto-fail sweep: board holds only spoken-and-in-set tags — board=["354"] allowed=["354"]
+PASS  VC-15 auto-fail sweep: no duplicate entries — board=["354"]
+
+== VC-16 — clipped utterance 'two twen': a fragment is not a tag ==
+PASS  VC-16: outcome ASK-REPEAT — {"outcome":"ASK-REPEAT","tag":null,"enteredTag":null,"message":"Didn't catch a matching tag — say it again.","language":"en","promptLanguage":"en","readBack":null,"needsTyping":false,"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354"]}
+PASS  VC-16: the two-digit fragment '22' also resolves to NOTHING (not padded to 212/221) — {"outcome":"ASK-REPEAT","tag":null,"enteredTag":null,"message":"Didn't catch a matching tag — say it again.","language":"en","promptLanguage":"en","readBack":null,"needsTyping":false}
+PASS  VC-16 auto-fail sweep: board holds only spoken-and-in-set tags — board=[] allowed=[]
+PASS  VC-16 auto-fail sweep: no duplicate entries — board=[]
+
+== VC-17 — clean Spanish tag, Spanish prompts ==
+PASS  VC-17: 'doscientos catorce' → CONFIRM on 214 (212 live, one digit off) — {"outcome":"CONFIRM","tag":"214","enteredTag":null,"suggestedTag":"212","prompt":"Escuché 214 — 212 también está en la fila de la izquierda. ¿Registrar 214?","message":"Escuché 214 — 212 también está en la fila de la izquierda. ¿Registrar 214?","language":"es","promptLanguage":"es","readBack":null,"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354"]}
+PASS  VC-17: the read-back prompt is the scripted Spanish question (app language) — Escuché 214 — 212 también está en la fila de la izquierda. ¿Registrar 214?
+PASS  VC-17: YES enters 214, outcome corrected — {"ok":true,"entered":"214","outcome":"corrected","readBack":"214","exception":{"trigger":"out_of_order","instruction":"214 arrived before 212 — keep the board order and call 212's student with this wave as planned.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:18.058Z"}}
+PASS  VC-17 auto-fail sweep: board holds only spoken-and-in-set tags — board=["214"] allowed=["214"]
+PASS  VC-17 auto-fail sweep: no duplicate entries — board=["214"]
+
+== VC-18 — clean Spanish sequence, incl. both pair members ==
+PASS  VC-18: CONFIRM ×3 (twin-guarded, Fix 1), zero ASK-REPEATs — ["CONFIRM","CONFIRM","CONFIRM"]
+PASS  VC-18: 212, 345, 354 entered in order, one each ('cuarenta y cinco' ≠ 'cincuenta y cuatro') — ["212","345","354"]
+PASS  VC-18 auto-fail sweep: board holds only spoken-and-in-set tags — board=["212","345","354"] allowed=["212","345","354"]
+PASS  VC-18 auto-fail sweep: no duplicate entries — board=["212","345","354"]
+
+== VC-19 — Spanish mishear on the standing pair: CONFIRM in Spanish ==
+PASS  VC-19: outcome CONFIRM — {"outcome":"CONFIRM","tag":"345","enteredTag":null,"suggestedTag":"354","prompt":"345 ya está en la fila de la izquierda — ¿quiso decir 354?","message":"345 ya está en la fila de la izquierda — ¿quiso decir 354?","language":"es","promptLanguage":"es","readBack":null,"transcribeSource":"stub","transcribeModel":"stub:muse-voice-transcribe-scripted","biasedTags":["212","214","221","345","354"]}
+PASS  VC-19: prompt is the scripted Spanish question — 345 ya está en la fila de la izquierda — ¿quiso decir 354?
+PASS  VC-19: nothing entered before the walker's YES — ["345"]
+PASS  VC-19 YES: 354 entered, outcome corrected — {"ok":true,"entered":"354","outcome":"corrected","readBack":"354","exception":{"trigger":"out_of_order","instruction":"354 arrived before 212 — keep the board order and call 212's student with this wave as planned.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:18.113Z"}}
+PASS  VC-19: no duplicate 345; board holds the pair once each — ["345","354"]
+PASS  VC-19 auto-fail sweep: board holds only spoken-and-in-set tags — board=["345","354"] allowed=["345","354"]
+PASS  VC-19 auto-fail sweep: no duplicate entries — board=["345","354"]
+
+== VC-20 — code-switching walker: language is per-utterance ==
+PASS  VC-20: CONFIRM ×3 across the switch (no ASK-REPEAT caused by language) — ["CONFIRM","CONFIRM","CONFIRM"]
+PASS  VC-20: the Spanish utterance was detected as Spanish mid-session, state not reset — ["en","es","en"]
+PASS  VC-20: 212, 221, 345 entered in order, one each — ["212","221","345"]
+PASS  VC-20 auto-fail sweep: board holds only spoken-and-in-set tags — board=["212","221","345"] allowed=["212","221","345"]
+PASS  VC-20 auto-fail sweep: no duplicate entries — board=["212","221","345"]
+
+== FIX100-A — twin BEHIND the said tag: CONFIRM, YES enters the SAID tag ==
+PASS  FIX100-A: outcome CONFIRM (twin 354 live behind 345 — no silent entry) — {"outcome":"CONFIRM","tag":"345","enteredTag":null,"suggestedTag":"354","prompt":"I heard 345 — 354 is also queued in Left. Enter 345?","message":"I heard 345 — 354 is also queued in Left. Enter 345?","language":"en","promptLanguage":"en","readBack":null}
+PASS  FIX100-A: prompt is the read-back, naming both tags — I heard 345 — 354 is also queued in Left. Enter 345?
+PASS  FIX100-A: NOTHING entered while the CONFIRM is pending — []
+PASS  FIX100-A: pending pair held server-side (345, twin 354, read-back prompt) — {"tag":"345","suggestedTag":"354","prompt":"I heard 345 — 354 is also queued in Left. Enter 345?"}
+PASS  FIX100-A YES: the SAID tag 345 enters (not the twin) — {"ok":true,"entered":"345","outcome":"corrected","readBack":"345"}
+PASS  FIX100-A: board holds exactly [345] — ["345"]
+PASS  FIX100-A auto-fail sweep: board holds only spoken-and-in-set tags — board=["345"] allowed=["345"]
+PASS  FIX100-A auto-fail sweep: no duplicate entries — board=["345"]
+
+== FIX100-A2 — the battery defect geometry: [354, 345], mishear resolves 345 ==
+PASS  FIX100-A2: outcome CONFIRM — the mishear no longer enters silently — {"outcome":"CONFIRM","tag":"345","enteredTag":null,"suggestedTag":"354","prompt":"I heard 345 — 354 is also queued in Left. Enter 345?","message":"I heard 345 — 354 is also queued in Left. Enter 345?","language":"en","promptLanguage":"en","readBack":null}
+PASS  FIX100-A2: nothing entered while pending — []
+PASS  FIX100-A2 NO: nothing entered, pending cleared (walker re-says instead) — {"ok":true,"entered":null,"outcome":"cancelled","readBack":null}
+PASS  FIX100-A2 auto-fail sweep: board holds only spoken-and-in-set tags — board=[] allowed=[]
+PASS  FIX100-A2 auto-fail sweep: no duplicate entries — board=[]
+
+== FIX100-B — 'Walker 345.' resolves (role call-sign stripped) ==
+PASS  FIX100-B: outcome MATCHED 345 (the battery's verbatim live transcript) — {"outcome":"MATCHED","tag":"345","enteredTag":"345","message":"Entered 345.","language":"en","promptLanguage":"en","readBack":"345","exception":{"trigger":"out_of_order","instruction":"345 arrived before 214 — keep the board order and call 214's student with this wave as planned.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:18.197Z"}}
+PASS  FIX100-B: board holds exactly [345] — ["345"]
+PASS  FIX100-B auto-fail sweep: board holds only spoken-and-in-set tags — board=["345"] allowed=["345"]
+PASS  FIX100-B auto-fail sweep: no duplicate entries — board=["345"]
+
+== FIX100-C — callWave validates the wave id at creation ==
+PASS  FIX100-C: id 'WD' is refused at creation (wave_id_invalid, not a later 422 at advise time) — {"error":"wave_id_invalid: \"WD\" — wave ids are letters followed by digits (L1, R1, L2)"}
+PASS  FIX100-C: id 'L1' is accepted (product convention) — {"ok":true,"wave":{"id":"L1","lane":"left","size":1,"status":"called"}}
+PASS  FIX100-C auto-fail sweep: board holds only spoken-and-in-set tags — board=[] allowed=[]
+PASS  FIX100-C auto-fail sweep: no duplicate entries — board=[]
+
+== HAM-1 — one-digit-off neighbors live: CONFIRM names the earliest in queue ==
+PASS  HAM-1: outcome CONFIRM (102/103/104 are each one digit off 101 and live) — {"outcome":"CONFIRM","tag":"101","enteredTag":null,"suggestedTag":"102","prompt":"I heard 101 — 102 is also queued in Left. Enter 101?","message":"I heard 101 — 102 is also queued in Left. Enter 101?","language":"en","promptLanguage":"en","readBack":null}
+PASS  HAM-1: prompt names the heard tag and the EARLIEST near neighbor (102) — I heard 101 — 102 is also queued in Left. Enter 101?
+PASS  HAM-1: nothing entered while the CONFIRM is pending — []
+PASS  HAM-1 YES: the HEARD tag 101 enters, outcome corrected — {"ok":true,"entered":"101","outcome":"corrected","readBack":"101"}
+PASS  HAM-1 auto-fail sweep: board holds only spoken-and-in-set tags — board=["101"] allowed=["101"]
+PASS  HAM-1 auto-fail sweep: no duplicate entries — board=["101"]
+
+== HAM-2 — no confusable tag live: MATCHED unchanged ==
+PASS  HAM-2: outcome MATCHED 401 (no transposition twin, no one-digit-off tag live) — {"outcome":"MATCHED","tag":"401","enteredTag":"401","message":"Entered 401.","language":"en","promptLanguage":"en","readBack":"401","exception":{"trigger":"out_of_order","instruction":"401 arrived before 214 — keep the board order and call 214's student with this wave as planned.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:18.231Z"}}
+PASS  HAM-2: board holds exactly [401] — ["401"]
+PASS  HAM-2 auto-fail sweep: board holds only spoken-and-in-set tags — board=["401"] allowed=["401"]
+PASS  HAM-2 auto-fail sweep: no duplicate entries — board=["401"]
+
+== HAM-3 — exact duplicate still beats the near-match guard ==
+PASS  HAM-3: outcome DUPLICATE, no CONFIRM, despite 102/103/104 live — {"outcome":"DUPLICATE","tag":"101","enteredTag":null,"message":"101 is already on the board — the first entry stands.","language":"en","promptLanguage":"en","readBack":null,"exception":{"trigger":"duplicate","instruction":"101 is already queued in Left, Wave 1, spot 1 — don't enter it again; the first entry stands.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:18.259Z"}}
+PASS  HAM-3: EX-04 fires; exactly one 101 on the board — {"trigger":"duplicate","instruction":"101 is already queued in Left, Wave 1, spot 1 — don't enter it again; the first entry stands.","action":"info","source":"spark","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:18.259Z"}
+PASS  HAM-3 auto-fail sweep: board holds only spoken-and-in-set tags — board=["101"] allowed=["101"]
+PASS  HAM-3 auto-fail sweep: no duplicate entries — board=["101"]
+
+== HOLD-V1 — voice entry of a HELD tag: HELD outcome, nothing entered ==
+PASS  HOLD-V1: outcome HELD — distinct from matched/corrected/duplicate — {"outcome":"HELD","tag":"345","enteredTag":null,"message":"345 is on HOLD — it was not entered. The office has to clear the hold first.","language":"en","promptLanguage":"en","readBack":null}
+PASS  HOLD-V1: the walker message says plainly the tag is on HOLD and was not entered — 345 is on HOLD — it was not entered. The office has to clear the hold first.
+PASS  HOLD-V1: nothing entered (no entry row for the held tag) — []
+PASS  HOLD-V1: voice log records (left, 345, held) — tag + outcome only — [{"lane":"left","tag":"345","outcome":"held"}]
+PASS  HOLD-V1 auto-fail sweep: board holds only spoken-and-in-set tags — board=[] allowed=[]
+PASS  HOLD-V1 auto-fail sweep: no duplicate entries — board=[]
+
+== HOLD-V2 — hold lands while a CONFIRM is pending: YES cannot enter ==
+PASS  HOLD-V2 setup: CONFIRM pending on 345 (twin 354 live) — {"outcome":"CONFIRM","tag":"345","enteredTag":null,"suggestedTag":"354","prompt":"I heard 345 — 354 is also queued in Left. Enter 345?","message":"I heard 345 — 354 is also queued in Left. Enter 345?","language":"en","promptLanguage":"en","readBack":null}
+PASS  HOLD-V2: YES returns outcome held, entered nothing — {"ok":true,"entered":null,"outcome":"held","tag":"345","readBack":null}
+PASS  HOLD-V2: board still empty and the pending pair cleared — []
+PASS  HOLD-V2: voice log records (345, held) — [{"lane":"left","tag":"345","outcome":"held"}]
+PASS  HOLD-V2 auto-fail sweep: board holds only spoken-and-in-set tags — board=[] allowed=[]
+PASS  HOLD-V2 auto-fail sweep: no duplicate entries — board=[]
+
+== Persistence hygiene — no audio/transcript storage anywhere ==
+PASS  HYGIENE: no audio/transcript/raw column exists in any copilot table — tables=copilot_schools,copilot_zone_checks,copilot_zone_state,copilot_waves,copilot_wave_queue,copilot_entries,copilot_holds,copilot_exception_current,copilot_exception_log,copilot_voice_log,copilot_voice_state,copilot_voice_sessions
+PASS  HYGIENE: voice log columns are exactly (id, school, ts, lane, resolved tag, outcome) — id,school_id,ts,lane,resolved_tag,outcome
+PASS  HYGIENE: no transcript text appears anywhere in the DB file — clean
+
+VOICE GATE: 175/175 PASS, 0 FAIL
+ALL VOICE CHECKS PASSED

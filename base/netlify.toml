@@ -1,0 +1,31 @@
+# RiderTap production — Netlify configuration (DRAFT, staged Oct 24 2026)
+# Deployed via the API file-digest method (see DEPLOY_PLAN.md). The ZIP
+# deploy route (bin/netlify-deploy.py) must NOT be used: ZIP deploys do not
+# bundle functions — the app would ship with a dead API.
+
+[build]
+  publish = "public"          # built client output is staged here at deploy time
+  functions = "functions-dist" # pre-bundled function zips' source dir (build artifact)
+
+[functions]
+  node_bundler = "esbuild"
+
+# Client calls POST /api/actions {action, args, schoolCode} — same wire shape
+# the Muse artifact uses (POST ./actions), so the client diff stays minimal.
+[[redirects]]
+  from = "/api/actions"
+  to = "/.netlify/functions/actions"
+  status = 200
+  force = true
+
+# SPA fallback (single-screen app; harmless and future-proof)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"

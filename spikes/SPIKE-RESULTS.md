@@ -32,9 +32,9 @@ the follow-ups at the bottom).
 
 ## Run header
 - Date/time (ET): Thu Oct 29, 2026, ~17:43–17:47 EDT (sitting: key set → redeploy → spikes)
-- Run by: Nova (key fetched in-memory from the staging Netlify env via the stored credential; never printed, logged, or written anywhere)
+- Run by: staging function (temporary spike harness; key fetched in-memory from the staging Netlify env via the stored credential; never printed, logged, or written anywhere)
 - Account: JR's Meta Model API account (Team ID noted in-session, never in this file)
-- Credits: balance before $150.00 (JR's Billing screenshot, 17:03 EDT) / after: not read by Nova (Billing is JR's console surface). Estimated spend of this run: **< $0.05** (published unit prices × measured usage below) — JR's ~$10 test ceiling was never approached; ≥$149.95 of the credits remain preserved for the competition period.
+- Credits: balance before $150.00 (JR's Billing screenshot, 17:03 EDT) / after: not read back (Billing is JR's console surface). Estimated spend of this run: **< $0.05** (published unit prices × measured usage below) — JR's ~$10 test ceiling was never approached; ≥$149.95 of the credits remain preserved for the competition period.
 - Calls made (total, all spikes): **9** (8 POSTs + 1 GET /models catalog read)
 
 ## Catalog model IDs (exact strings, copied from JR's account catalog)
@@ -91,13 +91,13 @@ How verified: `GET https://api.meta.ai/v1/models` on JR's account returned 9 mod
 - [x] Anything the spike disproved, recorded in BUILD-LOG the same day: the 200-token starvation, the 25s cold first call, and the Transcribe 404 are all in the Oct 29 BUILD-LOG entry
 
 ---
-## MEASURED RUN — Thu Oct 29, 2026 (evening, run from main chat by Nova)
-- Run by: Nova, server-side via a temporary function on staging DRAFT deploys (key stayed in Netlify env; never read/printed). 4 calls total. Spend ≈ $0.01 (SAM 2 images + Spark 2 calls) of $150 credits.
+## MEASURED RUN — Thu Oct 29, 2026 (evening)
+- Run by: staging function (temporary spike harness), server-side on staging DRAFT deploys (key stayed in Netlify env; never read/printed). 4 calls total. Spend ≈ $0.01 (SAM 2 images + Spark 2 calls) of $150 credits.
 - SAM: model "sam-3.1" answered on JR's account. POST /v1/responses. Latencies: 1,230 ms and 822 ms (n=2). Still: Commons photo zone-crop 640×335, ground truth 3 cars → parsed 3 boxes + 3 masks (Meta native text format in output_text: <|box;...|> <|mask;...|>). DECISION C-01: sync viable (≈1s vs 8s ceiling), keep measuring.
 - Spark: model "muse-spark-1.3" (STANDARD). Streaming + json_schema returned EMPTY content (HTTP 200, finish stop, 1,454 ms). Non-streaming returned schema-valid JSON in 2,575 ms: action check_tag, confidence 0.85, instruction 97 chars. DECISION: exception function calls Spark NON-streaming; 2.58s at minimal effort (287 reasoning tokens) is at the design edge → rule fallback stays armed (C-04 conservative reading).
 - Transcribe: NOT RUN tonight — Fri integration.
 
-## MEASURED RUN — Transcribe live (Thu Oct 29, 2026, evening, from main chat)
+## MEASURED RUN — Transcribe live (Thu Oct 29, 2026, evening)
 - One-shot POST /v1/asr/transcribe per TRANSCRIBE-CONTRACT.md §3, run server-side from a staging draft (key in Netlify env only). Clip: TTS "Three four five." 1.07s WAV, keywords = demo in-play tags, mode PUSH_TO_TALK.
 - HTTP 200 · 1,118 ms · audioDurationMs 1120 · transcript "three four five?" — words exact; trailing "?" is model punctuation (resolver maps words→tag 345; punctuation never trusted). turns[] empty in PUSH_TO_TALK (top-level transcript is the surface). Session: voyager/transcribe/2F7F6B11B05C433587BE19823D6EAF56. Raw: ~/workspace/ridertap/hackathon/spike-run/voice-result.json.
 - Status: contract CONFIRMED live. Remaining validation (JR's standard): n≥3 repeats + LiveTranscribeAdapter wiring + end-to-end live gate — Fri/Sat work blocks.

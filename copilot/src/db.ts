@@ -137,6 +137,69 @@ export async function ensureDemoSchool(db: Client): Promise<void> {
       args: [schoolId, lane, Date.now()],
     });
   }
+  // The called demo wave (film's queue, twins included) — see
+  // ensureDemoWave's header for the full discipline. No-ops whenever
+  // any wave already exists for this school.
+  await ensureDemoWave(db, schoolId);
+}
+
+// --- Demo-wave seeding (JR-approved, Oct 31) ------------------------------
+// The demo board must be ALIVE for a walk-in judge: the school alone is
+// not enough — without a called wave the walker's closed set is empty,
+// every utterance lands on ASK-REPEAT, and the read-back CONFIRM (the
+// product's signature guard) can never fire. So, on the PERSISTENT
+// staging database only, the demo school also starts with the film's
+// wave already called: L1 on the Left Line carrying the exact queue the
+// voice harness proves against (scripts/run-voice-scenarios.ts SEED),
+// including the 345/354 transposition twins.
+//
+// Discipline:
+//   - Existence-checked: seeds ONLY when the demo school has no waves
+//     at all. Once any wave exists this never writes again — judges'
+//     entries and board progress persist untouched (never auto-reset).
+//   - Persistent-DB only: the scenario harnesses force throwaway local
+//     files (COPILOT_DB_URL) and seed their own waves per case; this
+//     block must never fight them, so it runs only when the resolved
+//     DB is the remote staging database.
+//   - The writes mirror board.callWave's INSERTs exactly (same tables,
+//     same conflict handling). callWave itself cannot be called from
+//     here: it awaits ensureSchema(), and this code runs INSIDE
+//     ensureSchema — that await would deadlock on its own promise.
+//   - Failure-isolated: a seeding failure logs and the bootstrap
+//     continues; a missing demo wave must never take the function down.
+export const DEMO_WAVE_ID = "L1";
+export const DEMO_WAVE_LANE = "left";
+export const DEMO_WAVE_TAGS = ["212", "214", "221", "345", "354"];
+
+export async function ensureDemoWave(db: Client, schoolId: string): Promise<void> {
+  if (dbKind !== "libsql-remote") return;
+  try {
+    const waveRows = (
+      await db.execute({
+        sql: "SELECT COUNT(*) AS n FROM copilot_waves WHERE school_id = ?",
+        args: [schoolId],
+      })
+    ).rows;
+    if (Number(waveRows[0]?.n ?? 0) > 0) return;
+    const now = Date.now();
+    await db.execute({
+      sql: `INSERT INTO copilot_waves (school_id, id, lane, size, status, created_at)
+            VALUES (?, ?, ?, ?, 'called', ?)
+            ON CONFLICT(school_id, id) DO UPDATE SET
+              lane = excluded.lane, size = excluded.size, status = excluded.status`,
+      args: [schoolId, DEMO_WAVE_ID, DEMO_WAVE_LANE, DEMO_WAVE_TAGS.length, now],
+    });
+    for (const [i, tag] of DEMO_WAVE_TAGS.entries()) {
+      await db.execute({
+        sql: `INSERT INTO copilot_wave_queue (school_id, wave, tag, position, entered)
+              VALUES (?, ?, ?, ?, 0)
+              ON CONFLICT(school_id, wave, tag) DO NOTHING`,
+        args: [schoolId, DEMO_WAVE_ID, tag, i + 1],
+      });
+    }
+  } catch (err) {
+    console.error("demo wave seeding failed (continuing without it):", err);
+  }
 }
 
 // Tenant resolution — identical discipline to the base: normalize BOTH
@@ -144,6 +207,33 @@ export async function ensureDemoSchool(db: Client): Promise<void> {
 // RT-KW4W4X / RTKW4W4X / rt-kw4w4x are the same code.
 export function normalizeCode(code: string): string {
   return code.toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+/**
+ * Per-request demo self-heal (Oct 31, judging-week hardening).
+ *
+ * The demo bootstrap above runs once per function instance, inside
+ * ensureSchema. That leaves a real gap: if demo state is wiped through
+ * a test-support action (resetZone / resetBoard) while an instance is
+ * warm, that instance never re-runs the bootstrap, and the board stays
+ * wiped until the instance happens to recycle. Judges arrive on their
+ * own schedule, so the demo tenant instead re-asserts its bootstrap on
+ * every request that resolves it: ensureDemoSchool is fully idempotent
+ * (guarded inserts, existence-checked wave seed), so re-running it is
+ * a no-op whenever the state is intact — and a repair whenever it is
+ * not. Persistent staging DB only, like the wave seed: the scenario
+ * harnesses run throwaway local files and manage their own state.
+ */
+export async function ensureDemoSelfHeal(): Promise<void> {
+  if (dbKind !== "libsql-remote") return;
+  const db = getDb();
+  const rows = (
+    await db.execute("SELECT id, join_code FROM copilot_schools")
+  ).rows;
+  const demo = rows.find(
+    (r) => normalizeCode(String(r.join_code)) === normalizeCode(DEMO_JOIN_CODE),
+  );
+  if (demo) await ensureDemoSchool(db);
 }
 
 export async function resolveSchool(
@@ -156,6 +246,9 @@ export async function resolveSchool(
   ).rows;
   const school = rows.find((r) => normalizeCode(String(r.join_code)) === wanted);
   if (!school) return null;
+  if (wanted === normalizeCode(DEMO_JOIN_CODE)) {
+    await ensureDemoSelfHeal();
+  }
   return {
     id: String(school.id),
     laneMode: String(school.lane_mode),

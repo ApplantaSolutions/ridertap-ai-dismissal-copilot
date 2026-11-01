@@ -57,6 +57,10 @@ export interface ZoneCheckResult {
   adapter: string;
   modelId: string;
   latencyMs: number;
+  /** Present only on the still that raises the flag (2nd consecutive
+   *  mismatch): the exception agent's advisory, same record the Board
+   *  tab's card shows. */
+  exception?: ExceptionRecord;
 }
 
 export type ExceptionAction =

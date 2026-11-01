@@ -44,7 +44,7 @@ import time
 import urllib.request
 import zipfile
 
-sys.path[:0] = [p for p in ("/opt/muse/skills/custom-connector-setup/bin", "/opt/hatch/workflow-skills/custom-connector-setup/bin") if os.path.isdir(p)]
+sys.path[:0] = [p for p in ("/opt/hatch/workflow-skills/custom-connector-setup/bin",) if os.path.isdir(p)]
 from dynamic_credentials import add_surrogate_to_request, read_json_response
 
 API = "https://api.netlify.com/api/v1"

@@ -16,16 +16,21 @@
 // function only ever receives the payload this component sends), and no
 // image is stored anywhere by this component beyond the in-flight send.
 //
-// Honest state today (Oct 27): the server's SAM adapter is the scripted
-// stub until JR's Meta API key exists, so a live camera send is refused
-// by the function with `live_adapter_not_enabled` — this component
-// surfaces that error verbatim instead of pretending a count happened.
-// Test-asset stills exercise the same pipeline through the harness.
+// Live state: the server's SAM adapter is LIVE on staging (sam-3.1), so
+// camera frames are counted for real. NO CAMERA HANDY? A bundled SAMPLE
+// LOT PHOTO (client/sample-lot.jpg, served at /assets/sample-lot.jpg)
+// stands in for the camera: it is drawn into the same frame area, cropped
+// to the SAME zone rectangle, and sent through the SAME zoneCheck action
+// — one tap is one sample, exactly like one camera tick. The sample is
+// labeled as a sample everywhere it appears; it is a real photograph of
+// a real lot (3 cars), so against the standard wave of 4 it exercises
+// the full mismatch path on purpose.
 
 import { useEffect, useRef, useState } from "react";
 import { call, type ZoneCheckResult } from "./api";
 
 export const CAPTURE_INTERVAL_MS = 5000;
+export const SAMPLE_STILL_URL = "/assets/sample-lot.jpg";
 
 interface ZoneRect {
   x: number;
@@ -44,9 +49,14 @@ export function ZonePhone({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sampleImgRef = useRef<HTMLImageElement | null>(null);
+  const sampleOnRef = useRef(false);
+  const pendingSampleSendRef = useRef(false);
   const [rect, setRect] = useState<ZoneRect>({ x: 0.05, y: 0.3, w: 0.9, h: 0.55 });
   const [running, setRunning] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
+  const [sampleOn, setSampleOn] = useState(false);
+  const [sampleReady, setSampleReady] = useState(false);
   const [last, setLast] = useState<ZoneCheckResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sends, setSends] = useState(0);
@@ -76,27 +86,42 @@ export function ZonePhone({
     setCameraReady(false);
   }
 
-  /** Draw the current frame, crop to the zone rect, return base64 JPEG. */
-  function captureCropBase64(): string | null {
-    const video = videoRef.current;
-    if (!video || video.videoWidth === 0) return null;
-    const sx = Math.floor(rect.x * video.videoWidth);
-    const sy = Math.floor(rect.y * video.videoHeight);
-    const sw = Math.floor(rect.w * video.videoWidth);
-    const sh = Math.floor(rect.h * video.videoHeight);
+  /** Draw a frame source, crop to the zone rect, return base64 JPEG. */
+  function cropFrameBase64(
+    source: CanvasImageSource,
+    srcW: number,
+    srcH: number,
+  ): string | null {
+    if (srcW === 0 || srcH === 0) return null;
+    const sx = Math.floor(rect.x * srcW);
+    const sy = Math.floor(rect.y * srcH);
+    const sw = Math.floor(rect.w * srcW);
+    const sh = Math.floor(rect.h * srcH);
     const canvas = document.createElement("canvas");
     canvas.width = sw;
     canvas.height = sh;
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
-    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
+    ctx.drawImage(source, sx, sy, sw, sh, 0, 0, sw, sh);
     const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
     return dataUrl.slice(dataUrl.indexOf(",") + 1);
   }
 
-  async function sendStill() {
-    const imageBase64 = captureCropBase64();
-    if (!imageBase64) return;
+  /** The camera frame, cropped to the zone rect. */
+  function captureCropBase64(): string | null {
+    const video = videoRef.current;
+    if (!video) return null;
+    return cropFrameBase64(video, video.videoWidth, video.videoHeight);
+  }
+
+  /** The sample lot photo, cropped to the SAME zone rect. */
+  function sampleCropBase64(): string | null {
+    const img = sampleImgRef.current;
+    if (!img || !img.complete) return null;
+    return cropFrameBase64(img, img.naturalWidth, img.naturalHeight);
+  }
+
+  async function sendImage(imageBase64: string) {
     try {
       const result = await call<ZoneCheckResult>("zoneCheck", {
         lane,
@@ -111,10 +136,40 @@ export function ZonePhone({
     setSends((n) => n + 1);
   }
 
+  async function sendStill() {
+    const imageBase64 = captureCropBase64();
+    if (imageBase64) await sendImage(imageBase64);
+  }
+
+  async function sendSample() {
+    const imageBase64 = sampleCropBase64();
+    if (imageBase64) await sendImage(imageBase64);
+  }
+
+  /** Show the sample lot photo and run one check on it immediately. */
+  function useSamplePhoto() {
+    sampleOnRef.current = true;
+    setSampleOn(true);
+    const img = sampleImgRef.current;
+    if (img && img.complete && img.naturalWidth > 0) {
+      void sendSample();
+    } else {
+      // The <img> fires onLoad when it arrives; send then (see onLoad).
+      pendingSampleSendRef.current = true;
+    }
+  }
+
+  function hideSamplePhoto() {
+    stopCapture();
+    sampleOnRef.current = false;
+    setSampleOn(false);
+  }
+
   function startCapture() {
     if (timerRef.current) return;
-    void sendStill();
-    timerRef.current = setInterval(() => void sendStill(), CAPTURE_INTERVAL_MS);
+    const tick = () => void (sampleOnRef.current ? sendSample() : sendStill());
+    tick();
+    timerRef.current = setInterval(tick, CAPTURE_INTERVAL_MS);
     setRunning(true);
   }
 
@@ -125,6 +180,15 @@ export function ZonePhone({
   }
 
   useEffect(() => stopCamera, []); // cleanup on unmount
+
+  // The <video> unmounts while the sample photo is shown; when the
+  // camera view returns, re-attach the still-live stream to it.
+  useEffect(() => {
+    if (!sampleOn && streamRef.current && videoRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      void videoRef.current.play().catch(() => {});
+    }
+  }, [sampleOn]);
 
   const slider = (key: keyof ZoneRect, label: string) => (
     <label style={{ display: "block", fontSize: 12, marginTop: 6 }}>
@@ -156,7 +220,23 @@ export function ZonePhone({
           boxShadow: "0 12px 30px rgba(0, 0, 0, 0.45)",
         }}
       >
-        <video ref={videoRef} playsInline muted style={{ width: "100%", display: "block" }} />
+        {sampleOn ? (
+          <img
+            ref={sampleImgRef}
+            src={SAMPLE_STILL_URL}
+            alt="Sample lot photo"
+            onLoad={() => {
+              setSampleReady(true);
+              if (pendingSampleSendRef.current) {
+                pendingSampleSendRef.current = false;
+                void sendSample();
+              }
+            }}
+            style={{ width: "100%", display: "block" }}
+          />
+        ) : (
+          <video ref={videoRef} playsInline muted style={{ width: "100%", display: "block" }} />
+        )}
         <div
           aria-hidden
           style={{
@@ -171,6 +251,13 @@ export function ZonePhone({
           }}
         />
       </div>
+      {sampleOn && (
+        <p style={{ fontSize: 12.5, opacity: 0.8, marginTop: 8 }}>
+          <strong>Sample lot photo</strong> — a still standing in for the
+          camera. Checks crop it to the yellow rectangle and send only the
+          crop, exactly like a live frame.
+        </p>
+      )}
 
       <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
         {!cameraReady ? (
@@ -178,8 +265,18 @@ export function ZonePhone({
         ) : (
           <button onClick={stopCamera}>Close camera</button>
         )}
-        {cameraReady && !running && <button onClick={startCapture}>Start zone check (every {CAPTURE_INTERVAL_MS / 1000}s)</button>}
-        {cameraReady && running && <button onClick={stopCapture}>Stop zone check</button>}
+        {!sampleOn ? (
+          <button onClick={useSamplePhoto}>Use sample lot photo</button>
+        ) : (
+          <>
+            <button onClick={() => void sendSample()} disabled={!sampleReady}>
+              Check sample photo again
+            </button>
+            <button onClick={hideSamplePhoto}>Hide sample photo</button>
+          </>
+        )}
+        {(cameraReady || sampleOn) && !running && <button onClick={startCapture}>Start zone check (every {CAPTURE_INTERVAL_MS / 1000}s)</button>}
+        {(cameraReady || sampleOn) && running && <button onClick={stopCapture}>Stop zone check</button>}
       </div>
 
       <details style={{ marginTop: 10 }}>
@@ -198,6 +295,14 @@ export function ZonePhone({
           Last check: zone <strong>{last.count}</strong> vs wave{" "}
           <strong>{last.expected}</strong> → <strong>{last.status}</strong>{" "}
           <span style={{ opacity: 0.7 }}>({last.adapter}, {last.latencyMs} ms)</span>
+        </p>
+      )}
+      {last?.exception && (
+        <p style={{ fontSize: 14 }}>
+          Copilot: <strong>{last.exception.instruction}</strong>{" "}
+          <span style={{ opacity: 0.7 }}>
+            — confirm or dismiss it on the Board tab.
+          </span>
         </p>
       )}
       {error && (

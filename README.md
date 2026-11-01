@@ -20,17 +20,23 @@ confirms every action it suggests.
    **RT-KW4W4X**, and tap **"Open board"**. You land on the demo board —
    two lanes (Left Line, Right Line), each expecting a wave of 4, both
    reading VERIFIED.
-2. **"Walker"** tab — hold **"🎤 Hold to talk"** and speak a tag. Only
-   tags queued in a called wave can be entered; the walker never guesses.
-   With a sound-alike also queued (354, in the film's wave), "three four
-   five" stops at a read-back — "I heard 345 — 354 is also queued in
-   Left. Enter 345?" — tap **"Yes"**. The demo board starts with no wave
-   called, so cold, it asks you to repeat rather than invent an entry.
-3. **"Zone phone"** tab — tap **"Open camera"**, frame vehicles in the
-   yellow rectangle (a photo of a parking lot on another screen works),
-   tap **"Start zone check (every 5s)"**. The model counts the vehicles
-   in the rectangle; the frame is counted and discarded — only the count
-   is kept.
+2. **"Walker"** tab — Wave L1 is already called on the Left Line, with
+   the film's queue (212, 214, 221, 345, 354). Hold **"🎤 Hold to talk"**
+   and say *"three four five"*. Only tags queued in a called wave can be
+   entered, and the walker never guesses: because the sound-alike 354 is
+   queued in the same wave, it stops at a read-back — "I heard 345 — 354
+   is also queued in Left. Enter 345?" — tap **"Yes"** to enter 345, or
+   **"No"** to enter nothing.
+3. **"Zone phone"** tab — no camera needed: tap **"Use sample lot
+   photo"**. A sample photo of a lot (3 cars) fills the frame; the check
+   crops it to the yellow rectangle and sends only the crop, exactly
+   like a live frame. Against the wave of 4, the first check reads
+   **CHECKING**; tap **"Check sample photo again"** and the second
+   consecutive mismatch raises **MISMATCH** — Muse Spark's instruction
+   appears right there and as the exception card on the Board tab. (With
+   a real camera: **"Open camera"** and **"Start zone check (every
+   5s)"** run the same check on live frames.) Either way, the frame is
+   counted and discarded — only the count is kept.
 4. Watch the **"Board"**: verdicts land on the lane chips, and a
    mismatch raises the exception card with one plain-language
    instruction — **"Confirm"** or **"Dismiss"**.

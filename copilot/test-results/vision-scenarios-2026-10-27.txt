@@ -1,5 +1,5 @@
 == health ==
-PASS  health answers ok — {"ok":true,"service":"ridertap-copilot","build":"build-2-exception-agent","samAdapter":"stub","samModel":"stub:sam-3.1-scripted","sparkAdapter":"live","sparkModel":"muse-spark-1.3","transcribeAdapter":"live","transcribeModel":"muse-voice-transcribe-1.0","db":"connected (local-file)","ts":"2026-10-30T13:37:17.100Z"}
+PASS  health answers ok — {"ok":true,"service":"ridertap-copilot","build":"build-2-exception-agent","samAdapter":"stub","samModel":"stub:sam-3.1-scripted","sparkAdapter":"live","sparkModel":"muse-spark-1.3","transcribeAdapter":"live","transcribeModel":"muse-voice-transcribe-1.0","db":"connected (local-file)","ts":"2026-11-01T01:28:15.054Z"}
 
 == STILLS-PLAN ground-truth sweep (single still, expected = ground truth → count must equal it, status VERIFIED) ==
 PASS  ST-01 (main) counts 0 — got count=0 status=VERIFIED masks=0
@@ -39,17 +39,17 @@ PASS  SC-03 privacy: no JPEG/PNG signature anywhere in the DB file
 
 == SC-04 — mismatch +1 (5 vs 4), debounce then flag ==
 PASS  SC-04 still 1: count 5, CHECKING, NO flag — {"ok":true,"lane":"left","count":5,"expected":4,"status":"CHECKING","flagRaised":false,"streak":1,"masksReturned":5,"masksCounted":5,"adapter":"stub","modelId":"stub:sam-3.1-scripted","latencyMs":0}
-PASS  SC-04 still 2: count 5, MISMATCH, flag raised with 5-vs-4 — {"ok":true,"lane":"left","count":5,"expected":4,"status":"MISMATCH","flagRaised":true,"streak":2,"masksReturned":5,"masksCounted":5,"adapter":"stub","modelId":"stub:sam-3.1-scripted","latencyMs":0,"exception":{"trigger":"zone_mismatch","instruction":"Zone count is 5, wave L1 expects 4 — hold the wave and check the extra car.","action":"hold_wave","source":"rule-fallback","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:17.203Z"}}
+PASS  SC-04 still 2: count 5, MISMATCH, flag raised with 5-vs-4 — {"ok":true,"lane":"left","count":5,"expected":4,"status":"MISMATCH","flagRaised":true,"streak":2,"masksReturned":5,"masksCounted":5,"adapter":"stub","modelId":"stub:sam-3.1-scripted","latencyMs":0,"exception":{"trigger":"zone_mismatch","instruction":"Zone count is 5, wave L1 expects 4 — hold the wave and check the extra car.","action":"hold_wave","source":"rule-fallback","latencyMs":0,"status":"open","createdAt":"2026-11-01T01:28:15.112Z"}}
 PASS  SC-04 still 3: still MISMATCH, flag NOT re-raised (one episode) — {"ok":true,"lane":"left","count":5,"expected":4,"status":"MISMATCH","flagRaised":false,"streak":3,"masksReturned":5,"masksCounted":5,"adapter":"stub","modelId":"stub:sam-3.1-scripted","latencyMs":0}
-PASS  SC-04 board status: left = MISMATCH, count 5, expected 4, flagCount 1 — {"lane":"left","status":"MISMATCH","count":5,"expected":4,"flagCount":1,"updatedAt":"2026-10-30T13:37:17.210Z"}
+PASS  SC-04 board status: left = MISMATCH, count 5, expected 4, flagCount 1 — {"lane":"left","status":"MISMATCH","count":5,"expected":4,"flagCount":1,"updatedAt":"2026-11-01T01:28:15.113Z"}
 
 == SC-05 — mismatch −1 (3 vs 4) on Right ==
 PASS  SC-05 still 1: count 3, CHECKING, no flag — {"ok":true,"lane":"right","count":3,"expected":4,"status":"CHECKING","flagRaised":false,"streak":1,"masksReturned":3,"masksCounted":3,"adapter":"stub","modelId":"stub:sam-3.1-scripted","latencyMs":0}
-PASS  SC-05 still 2: count 3, MISMATCH, flag with 3-vs-4 — {"ok":true,"lane":"right","count":3,"expected":4,"status":"MISMATCH","flagRaised":true,"streak":2,"masksReturned":3,"masksCounted":3,"adapter":"stub","modelId":"stub:sam-3.1-scripted","latencyMs":0,"exception":{"trigger":"zone_mismatch","instruction":"Zone count is 3, wave R1 expects 4 — check for the missing car before loading.","action":"check_tag","source":"rule-fallback","latencyMs":0,"status":"open","createdAt":"2026-10-30T13:37:17.229Z"}}
+PASS  SC-05 still 2: count 3, MISMATCH, flag with 3-vs-4 — {"ok":true,"lane":"right","count":3,"expected":4,"status":"MISMATCH","flagRaised":true,"streak":2,"masksReturned":3,"masksCounted":3,"adapter":"stub","modelId":"stub:sam-3.1-scripted","latencyMs":0,"exception":{"trigger":"zone_mismatch","instruction":"Zone count is 3, wave R1 expects 4 — check for the missing car before loading.","action":"check_tag","source":"rule-fallback","latencyMs":0,"status":"open","createdAt":"2026-11-01T01:28:15.119Z"}}
 
 == SC-06 — debounce guard: one transient mismatch = NO flag, ever ==
 PASS  SC-06 status sequence = VERIFIED, CHECKING, VERIFIED, VERIFIED — VERIFIED → CHECKING → VERIFIED → VERIFIED
-PASS  SC-06 flag count for the scenario = 0 — {"lane":"left","status":"VERIFIED","count":4,"expected":4,"flagCount":0,"updatedAt":"2026-10-30T13:37:17.257Z"}
+PASS  SC-06 flag count for the scenario = 0 — {"lane":"left","status":"VERIFIED","count":4,"expected":4,"flagCount":0,"updatedAt":"2026-11-01T01:28:15.124Z"}
 PASS  SC-06 chip ends VERIFIED
 
 ALL VISION CHECKS PASSED

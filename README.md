@@ -11,8 +11,34 @@ confirms every action it suggests.
 
 - **Entrant:** Applanta Solutions — Startup Track, "Build for Your World"
 - **Live staging demo:** https://ridertap-copilot-staging.netlify.app
-  (the demo school's join code is provided to judges with the submission)
+  (join code: **RT-KW4W4X**)
 - **Full evaluation record:** [EVAL-TABLE.md](EVAL-TABLE.md)
+
+## Judges — start here (60 seconds)
+
+1. Open https://ridertap-copilot-staging.netlify.app, enter the join code
+   **RT-KW4W4X**, and tap **"Open board"**. You land on the demo board —
+   two lanes (Left Line, Right Line), each expecting a wave of 4, both
+   reading VERIFIED.
+2. **"Walker"** tab — hold **"🎤 Hold to talk"** and speak a tag. Only
+   tags queued in a called wave can be entered; the walker never guesses.
+   With a sound-alike also queued (354, in the film's wave), "three four
+   five" stops at a read-back — "I heard 345 — 354 is also queued in
+   Left. Enter 345?" — tap **"Yes"**. The demo board starts with no wave
+   called, so cold, it asks you to repeat rather than invent an entry.
+3. **"Zone phone"** tab — tap **"Open camera"**, frame vehicles in the
+   yellow rectangle (a photo of a parking lot on another screen works),
+   tap **"Start zone check (every 5s)"**. The model counts the vehicles
+   in the rectangle; the frame is counted and discarded — only the count
+   is kept.
+4. Watch the **"Board"**: verdicts land on the lane chips, and a
+   mismatch raises the exception card with one plain-language
+   instruction — **"Confirm"** or **"Dismiss"**.
+
+Under the hood: **SAM 3.1** counts the zone · **Muse Spark** writes the
+exception instruction · **Muse Voice Transcribe** hears the tags. The
+dismissal in the demo film ran through these same screens and this same
+code path.
 
 ## Built before / built during the event
 

@@ -2,7 +2,7 @@
 // (staged Oct 24 2026; applied to the production client copy at bundle time,
 // AFTER the Proof Report lands and the artifact's final source is frozen).
 //
-// The Muse artifact's api.ts builds a proxy over @hatch/space-sdk that POSTs
+// The hosted artifact's api.ts builds a proxy over the platform SDK that POSTs
 // {action, args} to ./actions. Production keeps the EXACT same call sites in
 // App.tsx (api.getState({}), api.addEntry({number, lane}), ...) — only the
 // transport changes:

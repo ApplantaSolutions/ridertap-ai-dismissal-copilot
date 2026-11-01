@@ -1,5 +1,5 @@
 -- RiderTap PRODUCTION schema (Turso / libSQL — same SQLite dialect as the
--- Muse artifact's app.db, so the Drizzle sqlite-core schema ports 1:1).
+-- hosted artifact's app.db, so the Drizzle sqlite-core schema ports 1:1).
 --
 -- Differences from the artifact schema, and why:
 --   1. Multi-tenancy: a `schools` registry table + `school_id` on every table.

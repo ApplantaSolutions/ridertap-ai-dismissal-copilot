@@ -11,7 +11,7 @@
   node_bundler = "esbuild"
 
 # Client calls POST /api/actions {action, args, schoolCode} — same wire shape
-# the Muse artifact uses (POST ./actions), so the client diff stays minimal.
+# the hosted artifact uses (POST ./actions), so the client diff stays minimal.
 [[redirects]]
   from = "/api/actions"
   to = "/.netlify/functions/actions"

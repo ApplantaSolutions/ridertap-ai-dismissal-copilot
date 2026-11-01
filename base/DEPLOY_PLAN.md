@@ -30,7 +30,7 @@ Why this shape:
   needed — a request/response function + a strongly-consistent primary is a
   perfect fit. Cross-device updates appear within one poll cycle (~3 s),
   which is what "live board" means for this app.
-- **The artifact's backend is already libSQL/SQLite.** The space runtime
+- **The artifact's backend is already libSQL/SQLite.** The hosted runtime
   serves the actions from a Drizzle (sqlite-core) schema over SQLite
   (`app.db`). Turso *is* hosted libSQL — the schema, the SQL dialect, and
   the Drizzle driver family carry over. Porting risk is minimal: swap the
@@ -159,11 +159,11 @@ the schema and dispatch already have the seam for it.
 they'd let anyone wipe a school. Provisioning follows
 `scripts/provision-school.md` (one registry row per school + join code;
 plus one Applanta-held demo tenant matching the fictional Auburn Elementary
-profile, so sales/walkthroughs never touch a real school's space).
+profile, so sales/walkthroughs never touch a real school's deployment).
 
 ## 4. Server action inventory — port map (12 artifact actions)
 
-Source of truth: `server/src/actions.ts` in the space (frozen once the
+Source of truth: `server/src/actions.ts` in the hosted project (frozen once the
 Proof Report lands). Reference port staged at `functions/actions.ts`.
 
 | Artifact action | Production disposition |
@@ -241,12 +241,12 @@ independent connections (two would-be function invocations), WAL mode:
 - Number reusable after `departed`; same number in a second school fully
   independent (tenant isolation).
 
-Build tooling inventory (verified without building, per the space's
-AGENTS.md — non-builder sessions don't run the artifact build): Bun 1.4.4
-and Node 24 present on the VM; the space's client build entry
-(`client/build.mjs` via the space SDK) and server bundle script exist, and
-a prior SDK build output (`client/dist/` with `index.html` + assets) is
-present, confirming the tooling runs in this space.
+Build tooling inventory (verified without building, per the hosted
+project's AGENTS.md — non-builder sessions don't run the artifact build):
+Bun 1.4.4 and Node 24 present on the VM; the project's client build entry
+(`client/build.mjs` via the platform SDK) and server bundle script exist,
+and a prior SDK build output (`client/dist/` with `index.html` + assets)
+is present, confirming the tooling runs in this environment.
 
 ## 7. Rollback
 

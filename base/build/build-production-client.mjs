@@ -1,11 +1,12 @@
 // Production (Netlify) client build for RiderTap.
 //
-// This does NOT call @hatch/space-sdk's buildClient() and does NOT set
-// HATCH_SPACES_BUILD_DRIVER: that pipeline publishes the Muse web artifact,
-// which is not what is happening here. This script compiles the frozen
-// artifact SOURCE (with the production transport swapped in) into the
-// static bundle Netlify serves, replicating the canonical Bun.build()
-// configuration documented in @hatch/space-sdk/build (entrypoint, outdir,
+// This does NOT call the platform SDK's buildClient() and does NOT set
+// the hosted pipeline's build-driver flag: that pipeline publishes the
+// hosted web artifact, which is not what is happening here. This script
+// compiles the frozen artifact SOURCE (with the production transport
+// swapped in) into the static bundle Netlify serves, replicating the
+// canonical Bun.build() configuration documented in the platform SDK's
+// build module (entrypoint, outdir,
 // production NODE_ENV define, asset naming, tailwind plugin, and the
 // imported-asset URL re-prefix fixup).
 

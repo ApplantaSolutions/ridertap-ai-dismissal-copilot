@@ -43,7 +43,7 @@ HOLDs are reason-free flags on a tag number.
   it does not bundle functions.
 
 ## Stack (base)
-- **Client:** React 19 + TypeScript (Bun build via `@hatch/space-sdk`),
+- **Client:** React 19 + TypeScript (Bun build via the platform SDK),
   single-screen PWA-style app, ~3-second state poll. Source: `base/build/client/`,
   built output: `base/build/client/dist/`, staged publish dir: `base/public/`.
 - **Server:** ONE Netlify Function, `actions`

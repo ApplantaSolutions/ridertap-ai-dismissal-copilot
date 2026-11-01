@@ -1,4 +1,4 @@
-// PRODUCTION transport — replaces the Muse space SDK RPC client.
+// PRODUCTION transport — replaces the hosted platform SDK RPC client.
 //
 // Call sites in App.tsx are unchanged (api.getState({}), api.addEntry({...}),
 // ...). Only the transport differs from the artifact build:

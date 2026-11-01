@@ -147,7 +147,7 @@ async function loadState(schoolId: string) {
 
 // ------------------------------------------------------------- handlers
 // Each handler is the artifact handler of the same name, ported 1:1, plus
-// the tenant filter. (Artifact source: server/src/actions.ts in the space.)
+// the tenant filter. (Artifact source: server/src/actions.ts in the hosted project.)
 
 type Handler = (schoolId: string, args: any) => Promise<unknown>;
 
